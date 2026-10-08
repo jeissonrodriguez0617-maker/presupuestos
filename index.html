@@ -45,6 +45,9 @@ td input{padding:6px;font-size:13px}
 input[type=text]{text-transform:uppercase}
 input::placeholder{text-transform:none}
 td{text-transform:uppercase}
+#pBody td{text-transform:none}
+#pBody tr{cursor:pointer}#pBody tr:hover{background:#fdebd0}
+.codh{font-size:12px;margin-top:3px;min-height:15px;line-height:1.3}.codh.ok2{color:#8a5200}.codh.bad{color:var(--red);font-weight:600}
 .ov{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;z-index:50;padding:16px}
 .ov .box{background:#fff;border-radius:12px;padding:18px;width:100%;max-width:340px}
 .wide th,.wide td{white-space:nowrap}
@@ -95,7 +98,13 @@ td{text-transform:uppercase}
     <div id="discTipoBox" class="hide"><label class="l">Si eligió SÍ, ¿cuál?</label><div class="chips" id="fDiscTipo"></div></div>
     <label class="l">9. Estrato socioeconómico</label><div class="chips" id="fEstrato"></div>
     <label class="l">10. Códigos de las iniciativas (hasta 5)</label>
-    <div class="codes"><input type="text" class="cod" placeholder="Código 1"><input type="text" class="cod" placeholder="Código 2"><input type="text" class="cod" placeholder="Código 3"><input type="text" class="cod" placeholder="Código 4"><input type="text" class="cod" placeholder="Código 5"></div>
+    <datalist id="propsList"></datalist>
+    <div class="codes"><div><input type="text" class="cod" list="propsList" placeholder="Código 1" inputmode="numeric" autocomplete="off"><div class="codh mut"></div></div><div><input type="text" class="cod" list="propsList" placeholder="Código 2" inputmode="numeric" autocomplete="off"><div class="codh mut"></div></div><div><input type="text" class="cod" list="propsList" placeholder="Código 3" inputmode="numeric" autocomplete="off"><div class="codh mut"></div></div><div><input type="text" class="cod" list="propsList" placeholder="Código 4" inputmode="numeric" autocomplete="off"><div class="codh mut"></div></div><div><input type="text" class="cod" list="propsList" placeholder="Código 5" inputmode="numeric" autocomplete="off"><div class="codh mut"></div></div></div>
+    <details style="margin-top:10px"><summary style="cursor:pointer;font-weight:600">Ver listado de propuestas (<span id="pCnt"></span>)</summary>
+      <input type="text" id="pFiltro" placeholder="Buscar por código, tema o título" style="margin:8px 0" autocomplete="off">
+      <div class="scroll" style="max-height:300px"><table><thead><tr><th>Código</th><th>Tema</th><th>Título</th></tr></thead><tbody id="pBody"></tbody></table></div>
+      <div class="mut" style="margin-top:4px">Toca una fila para agregar ese código al siguiente campo vacío.</div>
+    </details>
     <div id="fMsg"></div>
     <div style="margin-top:12px" class="row">
       <button id="btnGuardar">Guardar y siguiente</button>
@@ -174,6 +183,8 @@ td{text-transform:uppercase}
 const DB='https://operativos-ivc-default-rtdb.firebaseio.com';
 const PIN='4433';
 const CLAVE='2828';
+const PROPS=[["57067","Transforma Lo Local","Cambio de carpeta asfáltica de la CL 71 entre KR83 Y KR82 (10006978, 10006946), en el barrio La Clarita. Entendiéndose esta como el retiro y reemplazo de la primera capa del pavimento (asfalto)."],["57068","Transforma Lo Local","Bacheo/parcheo de la CL 76 entre KR81 Y KR80A (10006195), en el barrio San José de La Granja. Entendiéndose esta como la intervención puntual y superficial a los daños existentes en el pavimento."],["57069","Transforma Lo Local","Bacheo/parcheo de la CL 66B entre KR122 Y KR121 (10001128), en el barrio Engativá Centro. Entendiéndose esta como la intervención puntual y superficial a los daños existentes en el pavimento."],["57070","Transforma Lo Local","Intervención Parque Urbanización Villa Amalia (AC 72 y la CL 72ª y KR 109 y KR 108) Recuperación y modernización de infraestructuras deterioradas para devolverles su seguridad y funcionalidad."],["57172","Ambiente y animales","Huellitas de atención veterinaria para nuestros animales de protección"],["57284","Ambiente y animales","En Engativá Niños y Niñas, jóvenes y lideres comunales promotores de adopción responsable"],["57323","Ambiente y animales","Foro: Engativá territorio amigo de los animales"],["57324","Ambiente y animales","Comunidad que cuida, red que protege y animales con bienestar en Engativá"],["57325","Ambiente y animales","Engativá esteriliza a los animales más vulnerables de los humedales, canales y ronda del río Bogotá"],["57335","Ambiente y animales","Esterilización y cuidado de animales vulnerables, ferales y en condición de calle en Engativá"],["57344","Participación ciudadana","Capacidades Digitales para la Participación en Engativá"],["57346","Participación ciudadana","Escuela de Gobierno: Transformar para la sana convivencia y una participación activa"],["57353","Derechos de las mujeres","Tejiendo generaciones: red comunitaria para el cuidado y la prevención de violencias en Engativá"],["57357","Derechos de las mujeres","Engativá previene y transforma: Escuela Comunitaria para la prevención de violencias familiares y sexuales"],["57493","Ambiente y animales","Educando a Engativá en la protección de sus fuentes hídricas y cuerpos de agua"],["57494","Ambiente y animales","Huertas Urbanas: Engativá con Soberanía Alimentaria"],["57497","Ambiente y animales","Engativá, Guardiana de la Biodiversidad"],["57499","Ambiente y animales","Engativá Resiliente: Comunidad Preparada frente al Cambio Climático"],["57501","Ambiente y animales","Engativá EcoComunidad: Cuidamos Nuestro Territorio"],["57502","Ambiente y animales","Engativá Late Verde: Arte, Deporte y Cultura por el Ambiente"],["57504","Ambiente y animales","Memoria Viva de Engativá: Cartografía, Arte y Patrimonio Ambiental de los Humedales"],["57505","Ambiente y animales","Engativá Aprende y Cuida: Educación Ambiental para Todos y Todas"],["57506","Ambiente y animales","Engativá Recicla y Renace: Eco Ambiental 48"],["57508","Ambiente y animales","Conjuntos que Reciclan: Propiedad Horizontal Sostenible"],["57509","Ambiente y animales","Recicla con Equidad: Reciclaje Inclusivo y con Enfoque Diferencial"],["57511","Ambiente y animales","Colegios que Transforman: Educación Ambiental y Reciclaje Escolar"],["57513","Ambiente y animales","Comercio Consciente: Separación en la Fuente en Plazas y Establecimientos"],["57515","Ambiente y animales","De la Cocina a la Tierra: Aprovechamiento de Orgánicos y Compostaje"],["57518","Ambiente y animales","Recicladores Protagonistas: Reconocimiento y Fortalecimiento del Oficio"],["57520","Ambiente y animales","Puntos Críticos Cero: Infraestructura e Innovación Digital para el Reciclaje"],["57524","Reactivación económica","Fortalecimiento y Formalización de Unidades Productivas para el Desarrollo Económico Local"],["57528","Reactivación económica","Fortalecimiento de Capacidades Productivas y Empresariales de la Economía Informal."],["57531","Reactivación económica","Fortalecimiento de Habilidades blandas y Técnicas para la Empleabilidad y el Acceso al Mercado Laboral en la localidad de Engativá"],["57533","Reactivación económica","Fortalecimiento de la Inclusión Laboral y las Competencias para el Empleo en Engativá"],["57535","Reactivación económica","Fortalecimiento del Turismo Comunitario Sostenible, Promoción del Patrimonio Cultural y Natural de Engativá"],["57536","Reactivación económica","Innovación y Fortalecimiento de la Oferta Turística, Cultural y Patrimonial de Engativá"],["57677","Cultura, recreación y deporte","Apoyar económicamente a organizaciones del Banco para desarrollar proyectos deportivos, recreativos y comunitarios que fortalezcan la participación, el liderazgo y el bienestar colectivo"],["57678","Cultura, recreación y deporte","Fortalecer colectivos y organizaciones recreo-deportivas mediante apoyos económicos para desarrollar iniciativas barriales de actividad física, recreación, deporte, inclusión y hábitos saludables"],["57681","Cultura, recreación y deporte","Otorgar apoyos económicos a organizaciones recreo-deportivas inscritas en el Banco para fortalecer escuelas deportivas comunitarias dirigidas a niños, niñas y adolescentes."],["57746","Cultura, recreación y deporte","Implementar apoyos económicos para organizaciones inscritas en el Banco, orientados al desarrollo de iniciativas deportivas y recreativas con impacto comunitario en los barrios."],["57750","Cultura, recreación y deporte","Dotando Sueños, Fortaleciendo la Cultura de Engativá."],["57751","Cultura, recreación y deporte","Engativá Crea y Crece con elementos para el Arte y la cultura"],["57755","Cultura, recreación y deporte","Semillas creativas: dotación pedagógica para el fortalecimiento de organizaciones artísticas, culturales y patrimoniales"],["57777","Cultura, recreación y deporte","Engativá Creativa, Diversa e histórica"],["57785","Cultura, recreación y deporte","FinanciArte Engativá: Del Recurso a la Escena"],["57805","Salud mental","Engativá siente y se conecta en salud mental"],["57810","Salud mental","Tejiendo Salud: Redes de Cuidado Comunitario y Bienestar"],["57982","Cultura, recreación y deporte","Festival Engativá Activa: Deporte, Recreación y Comunidad que Nos Une"],["57987","Cultura, recreación y deporte","Generación en Juego: Olimpiadas que Unen a Engativá"],["57989","Cultura, recreación y deporte","Realizar jornadas recreativas mensuales que permitan beneficiar la movilidad de la persona mayor"],["57993","Cultura, recreación y deporte","Personas mayores en movimiento: caminatas al aire libre y salidas recreodeportivas con participación ciudadana para transformar la localidad y fortalecer el bienestar."],["57999","Cultura, recreación y deporte","Fortaleciendo tu experiencia: Arte al territorio"],["58001","Cultura, recreación y deporte","Descubriendo el Arte en Engativá"],["58015","Cultura, recreación y deporte","Cultura Viva: Formación y Comunidad"],["58016","Cultura, recreación y deporte","Cultura, Innovación y Territorio en Engativá, sumérgete en la aventura"],["58018","Cultura, recreación y deporte","INGENIARTE ENGATIVÁ"]];
+const PMAP={};PROPS.forEach(x=>PMAP[x[0]]=x);
 const LOCS=['Usaquén','Chapinero','Santa Fe','San Cristóbal','Usme','Tunjuelito','Bosa','Kennedy','Fontibón','ENGATIVÁ','Suba','Barrios Unidos','Teusaquillo','Los Mártires','Antonio Nariño','Puente Aranda','La Candelaria','Rafael Uribe Uribe','Ciudad Bolívar','Sumapaz'];
 const SEED=[[886,"LADY LORENA MARTINEZ","IVC"],[887,"DEYSI ALEXANDRA MONTENEGRO RAMOS","IVC"],[908,"JOHN ALEXANDER MONCADA GOMEZ","IVC"],[909,"CAMILO ANDRÉS VARGAS VILLALOBOS","IVC"],[931,"DANNYS LORENA VERGARA CARRANZA","IVC"],[932,"MIGUEL ANGEL RODRIGUEZ RODRIGUEZ","IVC"],[981,"HECTOR JULIO RAMIREZ SIERRA","IVC"],[982,"DAVID ALEJANDRO ALBA CRUZ","IVC"],[983,"GERMAN FERNANDO ARDILA FLOREZ","IVC"],[994,"ANA YAMILE ESPITIA SICHACHA","IVC"],[995,"JHON ALEXANDER LADINO SILVA","IVC"],[1005,"MAURICIO ALEJANDRO FERNANDEZ PRIETO","IVC"],[1006,"ANGIEE LIZETH AVILA PEREZ","IVC"],[1007,"NATHA SAMUEL URBINA TORRES","IVC"],[1017,"JOSE GREGORIO GONZALEZ CHADID","IVC"],[1018,"MILTON STEVEN RINCON CHALA","IVC"],[1025,"MARIA NATALIA ALVAREZ RUEDA","IVC"],[1027,"JENIFFER ALEXANDRA NIETO ROJAS","IVC"],[1050,"LUZ AMANDA CAMARGO CAMARGO","IVC"],[1051,"JAIRO ADEMID LOZANO MARTINEZ","IVC"],[1052,"HENRY HERNAN FORIGUA GARCIA","IVC"],[1058,"JENIFER VANESA ESPINOSA BERNAL","IVC"],[1070,"JENNY PAOLA ARROYO LOZADA","IVC"],[1099,"NICOLAS GALEANO","IVC"],[1100,"CAROL DAYANA FORERO MUÑOZ","IVC"],[1148,"OSCAR IVAN PAJARITO AVENDAÑO","IVC"],[1149,"JESUS ANDRÉS ARIAS TIGREROS","IVC"],[1150,"LAURA DANIELA DELGADILLO NIÑO","IVC"],[1165,"FUAD DAVID CHADID BALSEIRO","IVC"],[1253,"CRISTIAN JOAQUIN GIL APONTE","IVC"],[1079,"DANIELA ALEJANDRA QUINTERO BENAVIDES","IVC"],[1080,"ROBERT HUMBERTO QUINTERO QUINTERO","IVC"],[1192,"LUISA FERNANDA ROJAS GOMEZ","IVC"],[1193,"JEISSON ANDRES RODRIGUEZ SANTAMARIA","IVC"],[1195,"WILSON PULIDO SANCHEZ","IVC"],[1196,"WILDEMAR CARVAJAL","IVC"],[1200,"EFREN SIERRA ORTIZ","IVC"],[1201,"LILIANA CHARRY","IVC"],[1313,"JUAN SEBASTIAN CRUZ PRADA","IVC"],[866,"LAURA DANIELA ALARCON AVILA","SYC"],[867,"WILSON VERGARA","SYC"],[868,"MAXIMILIANO RINCON GARCIA","SYC"],[869,"JUAN CARLOS CARDENAS ARIZA","PET"],[870,"BRAJAN STEVE GONZALEZ MOLINA","EE"],[878,"MARIA FERNANDA BORRERO RUEDA","SYC"],[879,"YESIKA ORTEGON CRIOLLO","PET"],[880,"NATHALY JOHANNA LUGO ROZO","PET"],[898,"HELLEN YARITZA ESCOBER GOMEZ","EE"],[899,"MARIA LUISA LOPEZ RIGUEROS","EE"],[900,"GLORIA PATRICIA TORRES BARON","EE"],[901,"LADY DIANA PARRA GARCIA","EE"],[902,"JOHN FREDY GUTIERREZ TRASLAVIÑA","PET"],[910,"SANYA FRANCINA RIAÑO TORRES","PET"],[916,"CRISTINA ISABEL GOMEZ MORENO","PET"],[918,"LINDA TATIANA GIL ROJAS","PET"],[945,"SANDRA JEANET AVILA ALVARADO","SYC"],[946,"JOAN DAVID FERRER","SYC"],[947,"DANIEL FELIPE PERILLA MESA","SYC"],[948,"JOSE LUIS VEGA MORENO","SYC"],[990,"JUAN DAVID BEDOYA CONTO","EE"],[996,"KEVIN SANTIAGO RINCON CASTIBLANCO","EE"],[997,"JEIMMY SIERRA GODOY","EE"],[998,"PAOLA ANDREA GONZALEZ HENAO","EE"],[999,"LILIANA MILENA CAMARGO","EE"],[1036,"ANA MELISA LARA PLATIN","SYC"],[1037,"JOHAN ALEXANDER RAMIREZ RINCON","SYC"],[1044,"IVO IGNACIO MOLINA TORRES","SYC"],[1045,"LUIS EDUARDO RODRIGUEZ LOPEZ","SYC"],[1046,"MANUEL DUVAN GONZALO VELASQUEZ GRACIA","SYC"],[1049,"JUAN FRANCISCO PEREZ BUITRAGO","SYC"],[1054,"JAVIER JESUS CHAPARRO MARTINEZ","SYC"],[1055,"NELSON MEDARDO ACOSTA VALLEJO","SYC"],[1056,"EDUARD ROMERO CRUZ","SYC"],[1057,"MANUEL DAVID GOMEZ PINEDA","SYC"],[1059,"MARGARITA ESPERANZA ORTIZ GONZALEZ","SYC"],[1060,"ALBA CRISTINA DEAZA BELLO","SYC"],[1061,"ANA LUCINDA PIZA","SYC"],[1062,"JOSE ROBERTO PINILLA LARA","SYC"],[1063,"EDWARD HERRERA GALEANO","SYC"],[1064,"JORGE ALBERTO SANABRIA BARRETO","SYC"],[1065,"MATEO CORDOBA BEJARANO","SYC"],[1066,"LUIS FERNANDO LOPEZ MARIN","SYC"],[1067,"CESAR AUGUSTO SOTO SOLENO","SYC"],[1068,"YAMILE COLORADO SALAZAR","SYC"],[1075,"JULIO CESAR PEREZ AVILA","SYC"],[1077,"JHON ALEX BARRERA MOSQUERA","SYC"],[1078,"ANDRÉS DAVID CANTOR TURRIAGO","SYC"],[1101,"SERGIO ANTONIO VILLEGAS ARISTIZABAL","SYC"],[1102,"SANDRA MILENA POLOCHE GUZMAN","SYC"],[1103,"SARA TAVERA","SYC"],[1142,"FARID ANDRES SOTO RODRIGUEZ","SYC"],[1147,"JULIAN ESTEBAN VARGAS PLAZAS","SYC"],[1178,"LUIS ALVARO RODRIGUEZ BELTRAN","PET"],[1240,"LAURA ROCIO AMAYA","PET"],[1241,"ESMERALDA ORTIZ PLAZAS","PET"],[1278,"GERMAN ALEXANDER GONZALEZ GAMBOA","SYC"],[1309,"LIZETH DAYANA RUBIANO PULIDO","SYC"]];
 
@@ -232,7 +243,30 @@ document.addEventListener('click',e=>{
   else{document.querySelectorAll(`input[name="${i.name}"]`).forEach(x=>x.dataset.was='0');i.dataset.was='1'}
 });
 
+function hintCod(i){
+  const c=i.value.trim(),h=i.parentElement.querySelector('.codh'),q=PMAP[c];
+  if(!c){h.textContent='';h.className='codh mut'}
+  else if(q){h.textContent=q[1]+' · '+q[2];h.className='codh ok2'}
+  else{h.textContent='Este código no está en el cuadernillo';h.className='codh bad'}
+}
+function refreshHints(){document.querySelectorAll('.cod').forEach(hintCod)}
+document.addEventListener('input',e=>{if(e.target.classList&&e.target.classList.contains('cod'))hintCod(e.target)});
+function renderP(){
+  const q=$('pFiltro').value.trim().toUpperCase();
+  const m=PROPS.filter(x=>!q||(x[0]+' '+x[1]+' '+x[2]).toUpperCase().includes(q));
+  $('pBody').innerHTML=m.map(x=>`<tr data-p="${x[0]}"><td>${x[0]}</td><td>${esc(x[1])}</td><td>${esc(x[2])}</td></tr>`).join('')||'<tr><td colspan="3" class="mut">Sin resultados.</td></tr>';
+}
 function buildForm(){
+  $('propsList').innerHTML=PROPS.map(x=>`<option value="${x[0]}">${esc(x[1]+' — '+x[2].slice(0,90))}</option>`).join('');
+  $('pCnt').textContent=PROPS.length;renderP();
+  $('pFiltro').addEventListener('input',renderP);
+  $('pBody').addEventListener('click',e=>{
+    const tr=e.target.closest('[data-p]');if(!tr)return;
+    const cs=[...document.querySelectorAll('.cod')];
+    if(cs.some(i=>i.value.trim()===tr.dataset.p))return;
+    const libre=cs.find(i=>!i.value.trim());
+    if(libre){libre.value=tr.dataset.p;hintCod(libre)}
+  });
   $('fLoc').value='ENGATIVÁ';
   chips('fTipo','tipo',['C.C','C.E','T.I','P.E.P']);
   chips('fSexo','sexo',['Masculino','Femenino','Trans','Otro','No binario','No decirlo']);
@@ -308,7 +342,7 @@ function limpiar(keepLoc){
   const loc=$('fLoc').value;
   editingSerial=null;$('modoEdit').textContent='';
   ['fNombre','fNumId','fFecha','fEdad'].forEach(i=>$(i).value='');
-  document.querySelectorAll('.cod').forEach(i=>i.value='');
+  document.querySelectorAll('.cod').forEach(i=>i.value='');refreshHints();
   ['tipo','sexo','org','disc','dtipo','estrato'].forEach(n=>setVal(n,''));
   $('discTipoBox').classList.add('hide');
   $('fLoc').value=keepLoc?loc:'ENGATIVÁ';
@@ -319,6 +353,11 @@ async function guardar(){
   const serial=parseInt($('fSerial').value,10);
   if(!serial)return msg('fMsg','Escribe el serial del formulario.');
   if(tieneRango(me)&&(serial<+me.desde||serial>+me.hasta))return msg('fMsg',`El serial ${serial} no está en tu rango (${me.desde} – ${me.hasta}).`);
+  const cods=[...document.querySelectorAll('.cod')].map(i=>i.value.trim());
+  const malos=cods.filter(c=>c&&!PMAP[c]);
+  if(malos.length)return msg('fMsg','Código(s) que no están en el cuadernillo: '+malos.join(', ')+'. Revisa el tarjetón.');
+  const rep=cods.filter((c,i)=>c&&cods.indexOf(c)!==i);
+  if(rep.length)return msg('fMsg','Código repetido en el mismo tarjetón: '+[...new Set(rep)].join(', ')+'.');
   const btn=$('btnGuardar');btn.disabled=true;
   try{
     const ex=await fb('proyecta_registros/'+serial);
@@ -358,7 +397,7 @@ async function editar(s){
     setVal('tipo',r.tipoId||'');$('fNumId').value=r.numId||'';$('fFecha').value=r.fechaExp||'';$('fEdad').value=r.edad||'';
     setVal('sexo',r.sexo||'');setVal('org',r.org||'');setVal('disc',r.disc||'');
     $('discTipoBox').classList.toggle('hide',r.disc!=='SI');setVal('dtipo',r.discTipo||'');setVal('estrato',r.estrato||'');
-    document.querySelectorAll('.cod').forEach((i,k)=>i.value=(r.codigos||[])[k]||'');
+    document.querySelectorAll('.cod').forEach((i,k)=>i.value=(r.codigos||[])[k]||'');refreshHints();
     msg('fMsg','');window.scrollTo({top:$('formCard').offsetTop-60,behavior:'smooth'});
   }catch(e){msg('fMsg','Error: '+e.message)}
 }
