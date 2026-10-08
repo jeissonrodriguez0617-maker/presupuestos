@@ -42,6 +42,11 @@ td input{padding:6px;font-size:13px}
 .hide{display:none}
 .scroll{max-height:460px;overflow:auto;border:1px solid var(--bd);border-radius:8px}
 .mut{color:var(--mut);font-size:13px}
+input[type=text]{text-transform:uppercase}
+input::placeholder{text-transform:none}
+td{text-transform:uppercase}
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;z-index:50;padding:16px}
+.ov .box{background:#fff;border-radius:12px;padding:18px;width:100%;max-width:340px}
 .wide th,.wide td{white-space:nowrap}
 </style>
 </head>
@@ -75,7 +80,7 @@ td input{padding:6px;font-size:13px}
     <h2>Formulario <span id="modoEdit" class="mut"></span></h2>
     <div class="row">
       <div><label class="l">Serial</label><input type="number" id="fSerial" inputmode="numeric"></div>
-      <div><label class="l">1. Localidad</label><input type="text" id="fLoc" value="Engativá" readonly></div>
+      <div><label class="l">1. Localidad</label><input type="text" id="fLoc" value="ENGATIVÁ" readonly></div>
     </div>
     <label class="l">2. Nombre completo</label><input type="text" id="fNombre" autocomplete="off">
     <label class="l">3. Tipo de identificación</label><div class="chips" id="fTipo"></div>
@@ -133,6 +138,11 @@ td input{padding:6px;font-size:13px}
       </div>
     </div>
     <div class="card">
+      <h2>Contratistas (<span id="nCont">0</span>)</h2>
+      <div class="row" style="margin-bottom:10px"><input type="text" id="fNum" placeholder="Filtrar por N° de contrato" inputmode="numeric" autocomplete="off"><input type="text" id="fNom" placeholder="Filtrar por nombre" autocomplete="off"><select id="fArea"></select></div>
+      <div class="scroll"><table><thead><tr><th>Contrato</th><th>Nombre</th><th>Área</th><th>Seriales</th><th>Digitados</th><th></th></tr></thead><tbody id="tbC"></tbody></table></div>
+    </div>
+    <div class="card">
       <h2 id="adTitulo">Agregar contratista</h2>
       <div class="row">
         <div><label class="l">No. de contrato</label><input type="number" id="aNum"></div>
@@ -142,19 +152,19 @@ td input{padding:6px;font-size:13px}
       <div style="margin-top:12px" class="row"><button id="btnAddC">Guardar contratista</button><button class="sec" id="btnCancelC">Cancelar edición</button></div>
       <div id="aMsg"></div>
     </div>
-    <div class="card">
-      <h2>Contratistas (<span id="nCont">0</span>)</h2>
-      <select id="fArea" style="max-width:240px;margin-bottom:10px"></select>
-      <div class="scroll"><table><thead><tr><th>Contrato</th><th>Nombre</th><th>Área</th><th>Seriales</th><th>Digitados</th><th></th></tr></thead><tbody id="tbC"></tbody></table></div>
-    </div>
   </div>
 
   <div id="tR" class="hide">
     <div class="card">
       <h2>Registros digitados</h2>
-      <p class="mut">Descarga provisional con todos los campos del formulario. Cuando definas el formato final se ajusta.</p>
-      <div class="row"><button id="btnXlsx">Descargar Excel</button><button class="sec" id="btnCsv">Descargar CSV</button><button class="sec" id="btnRecargar">Actualizar</button></div>
+      <div class="row" style="align-items:flex-end"><div><label class="l">Área</label><select id="dArea"></select></div><div><button id="btnXlsx" style="width:100%">Descargar Excel</button></div></div>
       <div id="rMsg" class="mut" style="margin-top:10px"></div>
+    </div>
+    <div class="card">
+      <h2>Formularios digitados</h2>
+      <input type="text" id="rFiltro" placeholder="Filtrar por contrato, nombre o serial" autocomplete="off">
+      <div class="scroll" style="margin-top:10px"><table class="wide"><thead id="rHead"></thead><tbody id="rBody"></tbody></table></div>
+      <div class="mut" id="rCnt" style="margin-top:6px"></div>
     </div>
   </div>
 </section>
@@ -163,7 +173,8 @@ td input{padding:6px;font-size:13px}
 <script>
 const DB='https://operativos-ivc-default-rtdb.firebaseio.com';
 const PIN='4433';
-const LOCS=['Usaquén','Chapinero','Santa Fe','San Cristóbal','Usme','Tunjuelito','Bosa','Kennedy','Fontibón','Engativá','Suba','Barrios Unidos','Teusaquillo','Los Mártires','Antonio Nariño','Puente Aranda','La Candelaria','Rafael Uribe Uribe','Ciudad Bolívar','Sumapaz'];
+const CLAVE='2828';
+const LOCS=['Usaquén','Chapinero','Santa Fe','San Cristóbal','Usme','Tunjuelito','Bosa','Kennedy','Fontibón','ENGATIVÁ','Suba','Barrios Unidos','Teusaquillo','Los Mártires','Antonio Nariño','Puente Aranda','La Candelaria','Rafael Uribe Uribe','Ciudad Bolívar','Sumapaz'];
 const SEED=[[886,"LADY LORENA MARTINEZ","IVC"],[887,"DEYSI ALEXANDRA MONTENEGRO RAMOS","IVC"],[908,"JOHN ALEXANDER MONCADA GOMEZ","IVC"],[909,"CAMILO ANDRÉS VARGAS VILLALOBOS","IVC"],[931,"DANNYS LORENA VERGARA CARRANZA","IVC"],[932,"MIGUEL ANGEL RODRIGUEZ RODRIGUEZ","IVC"],[981,"HECTOR JULIO RAMIREZ SIERRA","IVC"],[982,"DAVID ALEJANDRO ALBA CRUZ","IVC"],[983,"GERMAN FERNANDO ARDILA FLOREZ","IVC"],[994,"ANA YAMILE ESPITIA SICHACHA","IVC"],[995,"JHON ALEXANDER LADINO SILVA","IVC"],[1005,"MAURICIO ALEJANDRO FERNANDEZ PRIETO","IVC"],[1006,"ANGIEE LIZETH AVILA PEREZ","IVC"],[1007,"NATHA SAMUEL URBINA TORRES","IVC"],[1017,"JOSE GREGORIO GONZALEZ CHADID","IVC"],[1018,"MILTON STEVEN RINCON CHALA","IVC"],[1025,"MARIA NATALIA ALVAREZ RUEDA","IVC"],[1027,"JENIFFER ALEXANDRA NIETO ROJAS","IVC"],[1050,"LUZ AMANDA CAMARGO CAMARGO","IVC"],[1051,"JAIRO ADEMID LOZANO MARTINEZ","IVC"],[1052,"HENRY HERNAN FORIGUA GARCIA","IVC"],[1058,"JENIFER VANESA ESPINOSA BERNAL","IVC"],[1070,"JENNY PAOLA ARROYO LOZADA","IVC"],[1099,"NICOLAS GALEANO","IVC"],[1100,"CAROL DAYANA FORERO MUÑOZ","IVC"],[1148,"OSCAR IVAN PAJARITO AVENDAÑO","IVC"],[1149,"JESUS ANDRÉS ARIAS TIGREROS","IVC"],[1150,"LAURA DANIELA DELGADILLO NIÑO","IVC"],[1165,"FUAD DAVID CHADID BALSEIRO","IVC"],[1253,"CRISTIAN JOAQUIN GIL APONTE","IVC"],[1079,"DANIELA ALEJANDRA QUINTERO BENAVIDES","IVC"],[1080,"ROBERT HUMBERTO QUINTERO QUINTERO","IVC"],[1192,"LUISA FERNANDA ROJAS GOMEZ","IVC"],[1193,"JEISSON ANDRES RODRIGUEZ SANTAMARIA","IVC"],[1195,"WILSON PULIDO SANCHEZ","IVC"],[1196,"WILDEMAR CARVAJAL","IVC"],[1200,"EFREN SIERRA ORTIZ","IVC"],[1201,"LILIANA CHARRY","IVC"],[1313,"JUAN SEBASTIAN CRUZ PRADA","IVC"],[866,"LAURA DANIELA ALARCON AVILA","SYC"],[867,"WILSON VERGARA","SYC"],[868,"MAXIMILIANO RINCON GARCIA","SYC"],[869,"JUAN CARLOS CARDENAS ARIZA","PET"],[870,"BRAJAN STEVE GONZALEZ MOLINA","EE"],[878,"MARIA FERNANDA BORRERO RUEDA","SYC"],[879,"YESIKA ORTEGON CRIOLLO","PET"],[880,"NATHALY JOHANNA LUGO ROZO","PET"],[898,"HELLEN YARITZA ESCOBER GOMEZ","EE"],[899,"MARIA LUISA LOPEZ RIGUEROS","EE"],[900,"GLORIA PATRICIA TORRES BARON","EE"],[901,"LADY DIANA PARRA GARCIA","EE"],[902,"JOHN FREDY GUTIERREZ TRASLAVIÑA","PET"],[910,"SANYA FRANCINA RIAÑO TORRES","PET"],[916,"CRISTINA ISABEL GOMEZ MORENO","PET"],[918,"LINDA TATIANA GIL ROJAS","PET"],[945,"SANDRA JEANET AVILA ALVARADO","SYC"],[946,"JOAN DAVID FERRER","SYC"],[947,"DANIEL FELIPE PERILLA MESA","SYC"],[948,"JOSE LUIS VEGA MORENO","SYC"],[990,"JUAN DAVID BEDOYA CONTO","EE"],[996,"KEVIN SANTIAGO RINCON CASTIBLANCO","EE"],[997,"JEIMMY SIERRA GODOY","EE"],[998,"PAOLA ANDREA GONZALEZ HENAO","EE"],[999,"LILIANA MILENA CAMARGO","EE"],[1036,"ANA MELISA LARA PLATIN","SYC"],[1037,"JOHAN ALEXANDER RAMIREZ RINCON","SYC"],[1044,"IVO IGNACIO MOLINA TORRES","SYC"],[1045,"LUIS EDUARDO RODRIGUEZ LOPEZ","SYC"],[1046,"MANUEL DUVAN GONZALO VELASQUEZ GRACIA","SYC"],[1049,"JUAN FRANCISCO PEREZ BUITRAGO","SYC"],[1054,"JAVIER JESUS CHAPARRO MARTINEZ","SYC"],[1055,"NELSON MEDARDO ACOSTA VALLEJO","SYC"],[1056,"EDUARD ROMERO CRUZ","SYC"],[1057,"MANUEL DAVID GOMEZ PINEDA","SYC"],[1059,"MARGARITA ESPERANZA ORTIZ GONZALEZ","SYC"],[1060,"ALBA CRISTINA DEAZA BELLO","SYC"],[1061,"ANA LUCINDA PIZA","SYC"],[1062,"JOSE ROBERTO PINILLA LARA","SYC"],[1063,"EDWARD HERRERA GALEANO","SYC"],[1064,"JORGE ALBERTO SANABRIA BARRETO","SYC"],[1065,"MATEO CORDOBA BEJARANO","SYC"],[1066,"LUIS FERNANDO LOPEZ MARIN","SYC"],[1067,"CESAR AUGUSTO SOTO SOLENO","SYC"],[1068,"YAMILE COLORADO SALAZAR","SYC"],[1075,"JULIO CESAR PEREZ AVILA","SYC"],[1077,"JHON ALEX BARRERA MOSQUERA","SYC"],[1078,"ANDRÉS DAVID CANTOR TURRIAGO","SYC"],[1101,"SERGIO ANTONIO VILLEGAS ARISTIZABAL","SYC"],[1102,"SANDRA MILENA POLOCHE GUZMAN","SYC"],[1103,"SARA TAVERA","SYC"],[1142,"FARID ANDRES SOTO RODRIGUEZ","SYC"],[1147,"JULIAN ESTEBAN VARGAS PLAZAS","SYC"],[1178,"LUIS ALVARO RODRIGUEZ BELTRAN","PET"],[1240,"LAURA ROCIO AMAYA","PET"],[1241,"ESMERALDA ORTIZ PLAZAS","PET"],[1278,"GERMAN ALEXANDER GONZALEZ GAMBOA","SYC"],[1309,"LIZETH DAYANA RUBIANO PULIDO","SYC"]];
 
 const $=id=>document.getElementById(id);
@@ -182,12 +193,37 @@ let mySer={};        // {serial:nombre}
 let allIdx={};       // índice global para el panel admin
 let editingSerial=null, editingContrato=null;
 
+/* ---------- clave 2828 para guardar / eliminar contratistas ---------- */
+function pedirClave(motivo){
+  return new Promise(res=>{
+    const ov=document.createElement('div');ov.className='ov';
+    ov.innerHTML=`<div class="box"><h2>Clave requerida</h2><div class="mut" style="margin-bottom:8px">${esc(motivo)}</div><input type="password" id="claveIn" placeholder="Clave" inputmode="numeric" autocomplete="off"><div id="claveMsg"></div><div class="row" style="margin-top:12px"><button id="claveOk">Aceptar</button><button class="sec" id="claveNo">Cancelar</button></div></div>`;
+    document.body.appendChild(ov);
+    const inp=ov.querySelector('#claveIn');inp.focus();
+    const fin=v=>{document.removeEventListener('keydown',kd,true);ov.remove();res(v)};
+    const ok=()=>{if(inp.value===CLAVE)fin(true);else{msg('claveMsg','Clave incorrecta.');inp.value='';inp.focus()}};
+    const kd=e=>{if(e.key==='Escape')fin(false)};
+    document.addEventListener('keydown',kd,true);
+    ov.querySelector('#claveOk').onclick=ok;
+    ov.querySelector('#claveNo').onclick=()=>fin(false);
+    inp.addEventListener('keydown',e=>{if(e.key==='Enter')ok()});
+  });
+}
+
+/* ---------- todo en mayúscula ---------- */
+document.addEventListener('input',e=>{
+  const t=e.target;
+  if(t.tagName!=='INPUT'||t.type!=='text'||t.readOnly)return;
+  const u=t.value.toUpperCase();
+  if(u!==t.value){const a=t.selectionStart,b=t.selectionEnd;t.value=u;try{t.setSelectionRange(a,b)}catch(_){}}
+},true);
+
 /* ---------- chips ---------- */
 function chips(id,name,opts){
   $(id).innerHTML=opts.map(o=>`<label><input type="radio" name="${name}" value="${esc(o)}"><span>${esc(o)}</span></label>`).join('');
 }
 const val=n=>{const e=document.querySelector(`input[name="${n}"]:checked`);return e?e.value:''};
-const setVal=(n,v)=>{document.querySelectorAll(`input[name="${n}"]`).forEach(e=>e.checked=(e.value===v))};
+const setVal=(n,v)=>{document.querySelectorAll(`input[name="${n}"]`).forEach(e=>e.checked=(String(v||'')!==''&&e.value.toUpperCase()===String(v).toUpperCase()))};
 // permitir des-seleccionar un chip volviendo a tocarlo
 document.addEventListener('click',e=>{
   const i=e.target.closest('.chips input');
@@ -197,7 +233,7 @@ document.addEventListener('click',e=>{
 });
 
 function buildForm(){
-  $('fLoc').value='Engativá';
+  $('fLoc').value='ENGATIVÁ';
   chips('fTipo','tipo',['C.C','C.E','T.I','P.E.P']);
   chips('fSexo','sexo',['Masculino','Femenino','Trans','Otro','No binario','No decirlo']);
   chips('fOrg','org',['JAL','JAC','O. Sociales','No responde','CPL','M. Comunitarios','Otro','Ninguna']);
@@ -275,7 +311,7 @@ function limpiar(keepLoc){
   document.querySelectorAll('.cod').forEach(i=>i.value='');
   ['tipo','sexo','org','disc','dtipo','estrato'].forEach(n=>setVal(n,''));
   $('discTipoBox').classList.add('hide');
-  $('fLoc').value=keepLoc?loc:'Engativá';
+  $('fLoc').value=keepLoc?loc:'ENGATIVÁ';
   $('fSerial').value=siguienteLibre();
   msg('fMsg','');
 }
@@ -293,12 +329,14 @@ async function guardar(){
     const rec={
       n:(ex&&ex.n)?ex.n:Math.max(0,...Object.values(mySer).map(r=>r.n||0))+1,
       serial,contrato:me.contrato,contratista:me.nombre,area:me.area||'',
-      localidad:'Engativá',nombre:$('fNombre').value.trim().toUpperCase(),
+      localidad:'ENGATIVÁ',nombre:$('fNombre').value.trim().toUpperCase(),
       tipoId:val('tipo'),numId:$('fNumId').value.trim(),fechaExp:$('fFecha').value,edad:$('fEdad').value,
       sexo:val('sexo'),org:val('org'),disc:val('disc'),discTipo:val('dtipo'),estrato:val('estrato'),
       codigos:[...document.querySelectorAll('.cod')].map(i=>i.value.trim()),
       ts:(editingSerial===serial&&ex&&ex.ts)?ex.ts:new Date().toISOString(),tsMod:new Date().toISOString()
     };
+    for(const k in rec){if(typeof rec[k]==='string'&&!['ts','tsMod','fechaExp'].includes(k))rec[k]=rec[k].toUpperCase()}
+    rec.codigos=rec.codigos.map(c=>c.toUpperCase());
     const upd={};
     upd['proyecta_registros/'+serial]=rec;
     upd['proyecta_idx/'+me.contrato+'/'+serial]=rec;
@@ -347,11 +385,12 @@ async function cargarAdmin(){
 function pintarAdmin(){
   const areas=[...new Set(Object.values(C).map(c=>c.area).filter(Boolean))].sort();
   const sel=$('fArea'),cur=sel.value||'';
-  sel.innerHTML='<option value="">Todas las áreas</option>'+areas.map(a=>`<option>${esc(a)}</option>`).join('')+'<option value="__none">Sin área</option>';
+  sel.innerHTML='<option value="">Todas las áreas</option>'+areas.map(a=>`<option>${esc(a)}</option>`).join('')+'<option value="__none">Sin área</option><option value="__con">Con registros digitados</option>';
   sel.value=cur;if(sel.value!==cur)sel.value='';
+  {const dv=$('dArea').value;$('dArea').innerHTML='<option value="">Todas las áreas</option>'+areas.map(a=>`<option value="${esc(a)}">${esc(a)}</option>`).join('');$('dArea').value=dv;if($('dArea').value!==dv)$('dArea').value=''}
   $('areasList').innerHTML=areas.map(a=>`<option value="${esc(a)}">`).join('');
-  const f=sel.value;
-  const ks=Object.keys(C).map(Number).sort((a,b)=>a-b).filter(k=>!f||(f==='__none'?!C[k].area:C[k].area===f));
+  const f=sel.value,fn=$('fNum').value.trim(),fm=$('fNom').value.trim().toUpperCase();
+  const ks=Object.keys(C).map(Number).sort((a,b)=>a-b).filter(k=>(!fn||String(k).includes(fn))&&(!fm||String(C[k].nombre||'').toUpperCase().includes(fm))).filter(k=>!f||(f==='__none'?!C[k].area:f==='__con'?Object.keys(allIdx[k]||{}).length>0:C[k].area===f));
   $('nCont').textContent=ks.length;
   $('tbC').innerHTML=ks.map(k=>{
     const c=C[k];
@@ -362,9 +401,10 @@ function pintarAdmin(){
 let editKey=null;
 async function guardarContratista(){
   const n=parseInt($('aNum').value,10),nm=$('aNom').value.trim().toUpperCase();
-  const area=$('aArea').value.trim();
+  const area=$('aArea').value.trim().toUpperCase();
   if(!n||!nm)return msg('aMsg','Número de contrato y nombre son obligatorios.');
   if(editKey!==String(n)&&C[n])return msg('aMsg','Ya existe un contratista con el contrato '+n+'.');
+  if(!(await pedirClave('Guardar contratista '+n)))return msg('aMsg','Operación cancelada: no se guardó.','warn');
   try{
     const upd={};
     if(editKey&&editKey!==String(n)){upd['proyecta_contratistas/'+editKey]=null}
@@ -380,9 +420,10 @@ $('tbC').addEventListener('click',async e=>{
   if(b.dataset.a){seleccionar(b.dataset.a);window.scrollTo({top:0,behavior:'smooth'})}
   if(b.dataset.e){const c=C[b.dataset.e];editKey=String(c.contrato);
     $('aNum').value=c.contrato;$('aNom').value=c.nombre;$('aArea').value=c.area||'';
-    $('adTitulo').textContent='Editar contratista '+c.contrato;window.scrollTo({top:0,behavior:'smooth'})}
+    $('adTitulo').textContent='Editar contratista '+c.contrato;$('adTitulo').scrollIntoView({behavior:'smooth'})}
   if(b.dataset.d){const k=b.dataset.d,c=C[k],hechos=Object.keys(allIdx[k]||{}).length;
     if(!confirm(`¿Eliminar a ${c.nombre} (contrato ${k})?`+(hechos?`\nTiene ${hechos} registros digitados; los registros NO se borran.`:'')))return;
+    if(!(await pedirClave('Eliminar contratista '+k)))return msg('aMsg','Operación cancelada: no se eliminó.','warn');
     try{await fb('proyecta_contratistas/'+k,'DELETE');await cargarAdmin()}catch(err){msg('aMsg','Error: '+err.message)}}
 });
 /* ---------- buscador y asignación de seriales ---------- */
@@ -443,22 +484,34 @@ $('btnQuitar').onclick=()=>asignar(true);
 
 /* ---------- descarga ---------- */
 const COLS=['N°','Serial','Contrato','Contratista','Área','Localidad','Nombre completo','Tipo ID','Número ID','Fecha expedición','Edad','Sexo','Organización social','Discapacidad','Cuál discapacidad','Estrato','Código 1','Código 2','Código 3','Código 4','Código 5','Fecha digitación'];
+let lastRows=[];
+function renderR(){
+  const q=$('rFiltro').value.trim().toLowerCase();
+  $('rHead').innerHTML='<tr>'+COLS.map(c=>`<th>${esc(c)}</th>`).join('')+'</tr>';
+  const da=$('dArea').value;
+  const m=lastRows.filter(r=>(!da||String(r[4]).toUpperCase()===da)&&(!q||r.slice(0,7).join(' ').toLowerCase().includes(q)));
+  $('rBody').innerHTML=m.slice(0,300).map(r=>'<tr>'+r.map(v=>`<td>${esc(v)}</td>`).join('')+'</tr>').join('')||`<tr><td colspan="${COLS.length}" class="mut">Sin registros.</td></tr>`;
+  $('rCnt').textContent=`Mostrando ${Math.min(m.length,300)} de ${m.length} registros${m.length>300?' (usa el filtro o descarga el Excel para ver todos)':''}.`;
+}
 async function filas(){
   msg('rMsg','');$('rMsg').textContent='Cargando…';
   const all=norm(await fb('proyecta_registros'));
   const rows=Object.values(all).sort((a,b)=>a.serial-b.serial).map(r=>{const c=r.codigos||[];
-    return [r.n,r.serial,r.contrato,r.contratista,r.area||'',r.localidad,r.nombre,r.tipoId,r.numId,r.fechaExp,r.edad,r.sexo,r.org,r.disc,r.discTipo,r.estrato,c[0]||'',c[1]||'',c[2]||'',c[3]||'',c[4]||'',r.ts]});
+    return [r.n,r.serial,r.contrato,r.contratista,((C[r.contrato]||{}).area||r.area||''),r.localidad,r.nombre,r.tipoId,r.numId,r.fechaExp,r.edad,r.sexo,r.org,r.disc,r.discTipo,r.estrato,c[0]||'',c[1]||'',c[2]||'',c[3]||'',c[4]||'',r.ts].map(v=>typeof v==='string'?v.toUpperCase():v)});
   $('rMsg').textContent=rows.length+' registros en Firebase.';
+  lastRows=rows;renderR();
   return rows;
 }
-async function descargar(tipo){
+async function descargar(){
   try{
-    const rows=await filas();if(!rows.length)return;
-    const nombre='proyecta_local_'+new Date().toISOString().slice(0,10);
-    if(tipo==='xlsx'){const ws=XLSX.utils.aoa_to_sheet([COLS,...rows]);const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Registros');XLSX.writeFile(wb,nombre+'.xlsx')}
-    else{const q=v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"';
-      const csv='\ufeff'+[COLS,...rows].map(r=>r.map(q).join(';')).join('\r\n');
-      const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));a.download=nombre+'.csv';a.click()}
+    const rows=await filas();
+    const da=$('dArea').value;
+    const sel=da?rows.filter(r=>String(r[4]).toUpperCase()===da):rows;
+    if(!sel.length){$('rMsg').textContent='No hay registros'+(da?' para el área '+da:'')+'.';return}
+    const nombre='proyecta_local_'+(da?da.replace(/[^A-Z0-9]+/g,'_')+'_':'')+new Date().toISOString().slice(0,10);
+    const ws=XLSX.utils.aoa_to_sheet([COLS.map(c=>c.toUpperCase()),...sel]);
+    const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Registros');XLSX.writeFile(wb,nombre+'.xlsx');
+    $('rMsg').textContent=sel.length+' registros descargados'+(da?' · área '+da:'')+'.';
   }catch(e){$('rMsg').textContent='Error: '+e.message}
 }
 
@@ -478,10 +531,12 @@ $('btnPin').onclick=async()=>{
 $('inPin').addEventListener('keydown',e=>{if(e.key==='Enter')$('btnPin').click()});
 $('btnAddC').onclick=guardarContratista;
 $('fArea').onchange=pintarAdmin;
+$('fNum').addEventListener('input',pintarAdmin);
+$('fNom').addEventListener('input',pintarAdmin);
 $('btnCancelC').onclick=cancelarEdicion;
-$('btnXlsx').onclick=()=>descargar('xlsx');
-$('btnCsv').onclick=()=>descargar('csv');
-$('btnRecargar').onclick=filas;
+$('rFiltro').addEventListener('input',renderR);
+$('btnXlsx').onclick=descargar;
+$('dArea').onchange=renderR;
 document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{
   document.querySelectorAll('.tabs button').forEach(x=>x.classList.toggle('on',x===b));
   ['tC','tR'].forEach(t=>$(t).classList.toggle('hide',t!==b.dataset.t));
