@@ -32,6 +32,12 @@ button:disabled{opacity:.5;cursor:not-allowed}
 .msg.err{background:#fde7e5;color:var(--red)}.msg.ok{background:#fde3b8;color:var(--ok)}.msg.warn{background:#fde3b8;color:var(--warn)}
 .range{background:#fdebd0;border:1px solid var(--bd);border-radius:8px;padding:12px;font-size:15px}
 .range b{font-size:20px;color:var(--g)}
+.avance{border-bottom:1px solid var(--bd);padding-bottom:14px;margin-bottom:14px}
+.kps{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0}.kp{background:#fdebd0;border:1px solid var(--bd);border-radius:10px;padding:10px 12px}.kp b{display:block;font-size:24px;color:var(--g);line-height:1.1}.kp span{font-size:12.5px;color:var(--mut)}
+.dns{display:flex;justify-content:space-around;gap:6px;margin:10px 0 6px;flex-wrap:wrap}.dn{text-align:center;flex:1;min-width:90px;max-width:150px}.dn svg{width:100%;display:block}.dn b{display:block;font-size:15px}.dn span{font-size:13px;color:var(--mut)}
+.avr{margin:12px 0}.avr .t{display:flex;justify-content:space-between;gap:8px;font-size:14px;margin-bottom:4px;flex-wrap:wrap}.avr .t b{font-size:15px}
+.avr .tr{height:16px;background:#f0e2cc;border-radius:8px;overflow:hidden}.avr .tr i{display:block;height:100%;background:linear-gradient(90deg,#F9A603,#F25C00);border-radius:8px;min-width:0;transition:width .5s}
+.avr.tot .tr i{background:linear-gradient(90deg,#F25C00,#F70025)}
 .bar{height:8px;background:#f0e2cc;border-radius:5px;overflow:hidden;margin-top:8px}.bar i{display:block;height:100%;background:#F9A603}
 table{width:100%;border-collapse:collapse;font-size:13px}
 th,td{padding:7px 8px;border-bottom:1px solid var(--bd);text-align:left}th{background:#fdebd0;position:sticky;top:0}
@@ -67,6 +73,7 @@ td{text-transform:uppercase}
 
 <!-- INGRESO CONTRATISTA -->
 <section id="vLogin" class="card">
+  <div id="avance" class="avance"><div class="row" style="align-items:center"><h2 style="margin:0">Avance de formularios por área</h2><button class="sec" id="btnAv" style="margin-left:auto;padding:6px 10px;font-size:13px">Actualizar</button></div><div id="avBody" class="mut" style="margin-top:10px">Cargando avance…</div></div>
   <div class="aviso">Los <b>Presupuestos Participativos</b> son un mecanismo de democracia directa donde la ciudadanía decide de forma transparente cómo invertir una parte del presupuesto público de su municipio o localidad. En este proceso, los propios vecinos proponen, debaten y votan proyectos prioritarios —como obras comunitarias, programas culturales o mejoras urbanas— para dar respuesta a las necesidades reales de su comunidad.</div>
   <h2>Ingresa tu número de contrato</h2>
   <input type="number" id="inContrato" placeholder="Ej: 1193" inputmode="numeric">
@@ -223,7 +230,7 @@ let editingSerial=null, editingContrato=null;
 function pedirClave(motivo){
   return new Promise(res=>{
     const ov=document.createElement('div');ov.className='ov';
-    ov.innerHTML=`<div class="box"><h2>Clave requerida</h2><div class="mut" style="margin-bottom:8px">${esc(motivo)}</div><input type="password" id="claveIn" placeholder="Clave" inputmode="numeric" autocomplete="off"><div id="claveMsg"></div><div class="row" style="margin-top:12px"><button id="claveOk">Aceptar</button><button class="sec" id="claveNo">Cancelar</button></div></div>`;
+    ov.innerHTML=`<div class="box"><h2>Clave requerida</h2><div class="mut" style="margin-bottom:8px">${esc(motivo)}</div><input type="password" id="claveIn" placeholder="Clave" inputmode="numeric" autocomplete="off"><div class="mut" style="margin-top:6px">¿No tiene la clave? Comuníquese con <b>Jeisson Rodríguez: 312 408 2466</b>.</div><div id="claveMsg"></div><div class="row" style="margin-top:12px"><button id="claveOk">Aceptar</button><button class="sec" id="claveNo">Cancelar</button></div></div>`;
     document.body.appendChild(ov);
     const inp=ov.querySelector('#claveIn');inp.focus();
     const fin=v=>{document.removeEventListener('keydown',kd,true);ov.remove();res(v)};
@@ -329,8 +336,33 @@ async function init(){
     }
   }catch(e){msg('loginMsg','No se pudo conectar con Firebase: '+e.message)}
   try{const last=localStorage.getItem('pl_last');if(last)$('inContrato').value=last}catch(e){}
+  cargarAvance();
 }
 
+
+/* ---------- avance por área (pantalla de ingreso) ---------- */
+async function cargarAvance(){
+  const box=$('avBody');if(!box)return;
+  box.textContent='Cargando avance…';
+  try{
+    const [cs,rg]=await Promise.all([fb('proyecta_contratistas'),fb('proyecta_registros')]);
+    const CC=norm(cs),RR=Object.values(norm(rg));
+    const gr=x=>String(x||'').toUpperCase()==='IVC'?'IVC':'SYC'; /* SYC agrupa todas las áreas menos IVC */
+    const A={};const get=a=>A[a]||(A[a]={asig:0,dig:0,cont:0});
+    Object.values(CC).forEach(c=>{const a=gr(c.area);const g=get(a);g.cont++;if(tieneRango(c))g.asig+=Math.max(0,+c.hasta-+c.desde+1)});
+    RR.forEach(r=>{if(!r||typeof r!=='object')return;const c=CC[r.contrato];get(gr((c&&c.area)||r.area)).dig++});
+    const orden=['IVC','SYC','PET','EE'];
+    const keys=Object.keys(A).sort((x,y)=>{const i=orden.indexOf(x),j=orden.indexOf(y);return (i<0?99:i)-(j<0?99:j)||x.localeCompare(y)}).filter(k=>A[k].asig||A[k].dig);
+    const dona=(nom,g,tot)=>{const p=g.asig?Math.min(100,Math.round(g.dig/g.asig*100)):0,R=42,L=2*Math.PI*R,d=L*p/100;
+      return `<div class="dn${tot?' tot':''}"><svg viewBox="0 0 100 100" role="img" aria-label="${esc(nom)} ${p}%"><circle cx="50" cy="50" r="${R}" fill="none" stroke="#f0e2cc" stroke-width="13"/><circle cx="50" cy="50" r="${R}" fill="none" stroke="${tot?'#F70025':'#F25C00'}" stroke-width="13" stroke-linecap="round" stroke-dasharray="${d} ${L-d}" transform="rotate(-90 50 50)"/><text x="50" y="55" text-anchor="middle" font-size="20" font-weight="700" fill="#2b1a14">${p}%</text></svg><b>${esc(nom)}</b><span>${g.dig} de ${g.asig}</span></div>`};
+    const T=keys.reduce((t,k)=>({asig:t.asig+A[k].asig,dig:t.dig+A[k].dig}),{asig:0,dig:0});
+    const conReg=new Set(RR.filter(r=>r&&typeof r==='object').map(r=>String(r.contrato))).size,totC=Object.keys(CC).length;
+    const kp=(v,l)=>`<div class="kp"><b>${v}</b><span>${l}</span></div>`;
+    const kpis=`<div class="kps">${kp(T.dig,'Formularios digitados')}${kp(Math.max(0,T.asig-T.dig),'Formularios faltantes')}${kp(T.asig,'Formularios asignados')}${kp(conReg+' de '+totC,'Contratistas con registros')}</div>`;
+    box.className='';
+    box.innerHTML=keys.length?kpis+`<div class="dns">${dona('TODAS',T,true)}${keys.map(k=>dona(k,A[k])).join('')}</div><div class="mut" style="text-align:center;font-size:12px">Formularios digitados de los asignados</div>`:'<span class="mut">Aún no hay formularios digitados.</span>';
+  }catch(e){box.className='mut';box.textContent='No se pudo cargar el avance: '+e.message}
+}
 /* ---------- ingreso contratista ---------- */
 async function ingresar(){
   const n=$('inContrato').value.trim();
@@ -464,6 +496,7 @@ function pintarMis(){
     return '<tr>'+cells.map(v=>`<td>${esc(v)}</td>`).join('')+`<td style="white-space:nowrap"><button class="sec" data-ed="${esc(k)}">Editar</button> <button class="red" data-del="${esc(k)}">Eliminar</button></td></tr>`}).join('')||'<tr><td colspan="19" class="mut">Aún no has digitado formularios.</td></tr>';
   const sc=document.querySelector('#vCaptura .scroll');sc.scrollTop=sc.scrollHeight;
 }
+$('btnAv').addEventListener('click',cargarAvance);
 $('misReg').addEventListener('click',async e=>{
   const b=e.target.closest('[data-ed]');if(b)return editar(b.dataset.ed);
   const d=e.target.closest('[data-del]');if(!d)return;
@@ -479,7 +512,7 @@ $('misReg').addEventListener('click',async e=>{
 /* ---------- administración ---------- */
 function salirAdmin(){
   me=null;['vCaptura','vPin','vAdmin'].forEach(i=>$(i).classList.add('hide'));
-  $('vLogin').classList.remove('hide');$('btnSalir').classList.add('hide');$('inContrato').value='';
+  $('vLogin').classList.remove('hide');$('btnSalir').classList.add('hide');$('inContrato').value='';cargarAvance();
 }
 async function cargarAdmin(){
   C=await fb('proyecta_contratistas')||{};
