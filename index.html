@@ -42,6 +42,9 @@ td input{padding:6px;font-size:13px}
 .hide{display:none}
 .scroll{max-height:460px;overflow:auto;border:1px solid var(--bd);border-radius:8px}
 .mut{color:var(--mut);font-size:13px}
+input.falta,select.falta{border-color:var(--red);background:#fff1f2}
+.chips.falta,.codes.falta{outline:2px solid var(--red);outline-offset:3px;border-radius:8px}
+.req{color:var(--red)}
 input[type=text]{text-transform:uppercase}
 input::placeholder{text-transform:none}
 td{text-transform:uppercase}
@@ -82,22 +85,22 @@ td{text-transform:uppercase}
   <div class="card" id="formCard">
     <h2>Formulario <span id="modoEdit" class="mut"></span></h2>
     <div class="row">
-      <div><label class="l">Serial</label><input type="number" id="fSerial" inputmode="numeric"></div>
+      <div><label class="l">Serial <span class="req">*</span></label><input type="number" id="fSerial" inputmode="numeric"></div>
       <div><label class="l">1. Localidad</label><input type="text" id="fLoc" value="ENGATIVÁ" readonly></div>
     </div>
-    <label class="l">2. Nombre completo</label><input type="text" id="fNombre" autocomplete="off">
-    <label class="l">3. Tipo de identificación</label><div class="chips" id="fTipo"></div>
+    <label class="l">2. Nombre completo <span class="req">*</span></label><input type="text" id="fNombre" autocomplete="off">
+    <label class="l">3. Tipo de identificación <span class="req">*</span></label><div class="chips" id="fTipo"></div>
     <div class="row">
-      <div><label class="l">Número de identificación</label><input type="text" id="fNumId" inputmode="numeric" autocomplete="off"></div>
-      <div><label class="l">4. Fecha de expedición</label><input type="date" id="fFecha"></div>
-      <div><label class="l">5. Edad</label><input type="number" id="fEdad" min="0" max="120" inputmode="numeric"></div>
+      <div><label class="l">Número de identificación <span class="req">*</span></label><input type="text" id="fNumId" inputmode="numeric" autocomplete="off"></div>
+      <div><label class="l">4. Fecha de expedición <span class="req">*</span></label><input type="date" id="fFecha"></div>
+      <div><label class="l">5. Edad <span class="req">*</span></label><input type="number" id="fEdad" min="0" max="120" inputmode="numeric"></div>
     </div>
-    <label class="l">6. Sexo</label><div class="chips" id="fSexo"></div>
-    <label class="l">7. Organización social</label><div class="chips" id="fOrg"></div>
-    <label class="l">8. ¿Tiene alguna discapacidad?</label><div class="chips" id="fDisc"></div>
-    <div id="discTipoBox" class="hide"><label class="l">Si eligió SÍ, ¿cuál?</label><div class="chips" id="fDiscTipo"></div></div>
-    <label class="l">9. Estrato socioeconómico</label><div class="chips" id="fEstrato"></div>
-    <label class="l">10. Códigos de las iniciativas (hasta 5)</label>
+    <label class="l">6. Sexo <span class="req">*</span></label><div class="chips" id="fSexo"></div>
+    <label class="l">7. Organización social <span class="req">*</span></label><div class="chips" id="fOrg"></div>
+    <label class="l">8. ¿Tiene alguna discapacidad? <span class="req">*</span></label><div class="chips" id="fDisc"></div>
+    <div id="discTipoBox" class="hide"><label class="l">Si eligió SÍ, ¿cuál? <span class="req">*</span></label><div class="chips" id="fDiscTipo"></div></div>
+    <label class="l">9. Estrato socioeconómico <span class="req">*</span></label><div class="chips" id="fEstrato"></div>
+    <label class="l">10. Códigos de las iniciativas (mínimo 1, máximo 5) <span class="req">*</span></label>
     <datalist id="propsList"></datalist>
     <div class="codes"><div><input type="text" class="cod" list="propsList" placeholder="Código 1" inputmode="numeric" autocomplete="off"><div class="codh mut"></div></div><div><input type="text" class="cod" list="propsList" placeholder="Código 2" inputmode="numeric" autocomplete="off"><div class="codh mut"></div></div><div><input type="text" class="cod" list="propsList" placeholder="Código 3" inputmode="numeric" autocomplete="off"><div class="codh mut"></div></div><div><input type="text" class="cod" list="propsList" placeholder="Código 4" inputmode="numeric" autocomplete="off"><div class="codh mut"></div></div><div><input type="text" class="cod" list="propsList" placeholder="Código 5" inputmode="numeric" autocomplete="off"><div class="codh mut"></div></div></div>
     <details style="margin-top:10px"><summary style="cursor:pointer;font-weight:600">Ver listado de propuestas (<span id="pCnt"></span>)</summary>
@@ -110,7 +113,7 @@ td{text-transform:uppercase}
       <button id="btnGuardar">Guardar y siguiente</button>
       <button class="sec" id="btnLimpiar">Limpiar</button>
     </div>
-    <p class="mut">Solo el serial es obligatorio; deja en blanco lo que no esté diligenciado en el formulario físico.</p>
+    <p class="mut"><span class="req">*</span> Todos los campos son obligatorios, excepto que en el punto 10 puedes digitar de 1 a 5 códigos (mínimo uno). No podrás guardar ni pasar al siguiente formulario hasta completarlos.</p>
   </div>
 
   <div class="card">
@@ -144,6 +147,8 @@ td{text-transform:uppercase}
         <div class="mut" id="sHint" style="margin-top:6px"></div>
         <div style="margin-top:12px" class="row"><button id="btnAsig">Guardar asignación</button><button class="sec" id="btnQuitar">Quitar rango</button></div>
         <div id="sMsg"></div>
+        <div class="row" style="align-items:center;margin-top:14px"><h2 style="margin:0">Formularios registrados (<span id="sFCnt">0</span>)</h2><div style="flex:0 0 auto"><button class="sec" id="btnFRef">Actualizar</button></div></div>
+        <div class="scroll" style="margin-top:8px"><table class="wide"><thead><tr><th>N°</th><th>Serial</th><th>Localidad</th><th>Nombre</th><th>Tipo ID</th><th>Número ID</th><th>Fecha Exp</th><th>Edad</th><th>Sexo</th><th>Org. Social</th><th>¿Discapacidad?</th><th>Tipo Discapacidad</th><th>Estrato</th><th>Código1</th><th>Código2</th><th>Código3</th><th>Código4</th><th>Código5</th><th></th></tr></thead><tbody id="sFBody"></tbody></table></div>
       </div>
     </div>
     <div class="card">
@@ -202,6 +207,11 @@ let C={};            // contratistas {contrato:{contrato,nombre,desde,hasta}}
 let me=null;         // contratista activo
 let mySer={};        // {serial:nombre}
 let allIdx={};       // índice global para el panel admin
+let allReg={};       // todos los registros (por llave de Firebase)
+async function cargarRegs(){
+  allReg=norm(await fb('proyecta_registros'));allIdx={};
+  Object.entries(allReg).forEach(([k,r])=>{(allIdx[r.contrato]=allIdx[r.contrato]||{})[k]=1});
+}
 let editingSerial=null, editingContrato=null;
 
 /* ---------- clave 2828 para guardar / eliminar contratistas ---------- */
@@ -221,6 +231,16 @@ function pedirClave(motivo){
   });
 }
 
+async function eliminarRegistro(serial,contrato){
+  if(!confirm(`¿Eliminar el formulario con serial ${serial}?`))return false;
+  if(!(await pedirClave('Eliminar formulario serial '+serial)))return false;
+  const u={};u['proyecta_registros/'+serial]=null;u['proyecta_idx/'+contrato+'/'+serial]=null;
+  await fb('','PATCH',u);
+  const [a,b]=await Promise.all([fb('proyecta_registros/'+serial),fb('proyecta_idx/'+contrato+'/'+serial)]);
+  if(a!==null||b!==null)throw new Error('Firebase no eliminó el registro '+serial+' (revisa las reglas de la base de datos).');
+  return true;
+}
+
 /* ---------- todo en mayúscula ---------- */
 document.addEventListener('input',e=>{
   const t=e.target;
@@ -229,12 +249,15 @@ document.addEventListener('input',e=>{
   if(u!==t.value){const a=t.selectionStart,b=t.selectionEnd;t.value=u;try{t.setSelectionRange(a,b)}catch(_){}}
 },true);
 
+document.addEventListener('input',e=>{const t=e.target;if(t.classList)t.classList.remove('falta');const c=t.closest&&t.closest('.chips,.codes');if(c)c.classList.remove('falta')});
+document.addEventListener('change',e=>{const c=e.target.closest&&e.target.closest('.chips');if(c)c.classList.remove('falta')});
+
 /* ---------- chips ---------- */
 function chips(id,name,opts){
   $(id).innerHTML=opts.map(o=>`<label><input type="radio" name="${name}" value="${esc(o)}"><span>${esc(o)}</span></label>`).join('');
 }
 const val=n=>{const e=document.querySelector(`input[name="${n}"]:checked`);return e?e.value:''};
-const setVal=(n,v)=>{document.querySelectorAll(`input[name="${n}"]`).forEach(e=>e.checked=(String(v||'')!==''&&e.value.toUpperCase()===String(v).toUpperCase()))};
+const setVal=(n,v)=>{document.querySelectorAll(`input[name="${n}"]`).forEach(e=>{e.checked=(String(v||'')!==''&&e.value.toUpperCase()===String(v).toUpperCase());e.dataset.was=e.checked?'1':'0'})};
 // permitir des-seleccionar un chip volviendo a tocarlo
 document.addEventListener('click',e=>{
   const i=e.target.closest('.chips input');
@@ -245,27 +268,35 @@ document.addEventListener('click',e=>{
 
 function hintCod(i){
   const c=i.value.trim(),h=i.parentElement.querySelector('.codh'),q=PMAP[c];
-  if(!c){h.textContent='';h.className='codh mut'}
+  const j=c?[...document.querySelectorAll('.cod')].findIndex(x=>x!==i&&x.value.trim()===c):-1;
+  if(j>=0){i.value='';h.textContent=`El código ${c} ya está en el cuadro ${j+1}: no se puede repetir.`;h.className='codh bad'}
+  else if(!c){h.textContent='';h.className='codh mut'}
   else if(q){h.textContent=q[1]+' · '+q[2];h.className='codh ok2'}
   else{h.textContent='Este código no está en el cuadernillo';h.className='codh bad'}
 }
-function refreshHints(){document.querySelectorAll('.cod').forEach(hintCod)}
-document.addEventListener('input',e=>{if(e.target.classList&&e.target.classList.contains('cod'))hintCod(e.target)});
+function usados(){return new Set([...document.querySelectorAll('.cod')].map(i=>i.value.trim()).filter(Boolean))}
+function updateList(){
+  const u=usados();
+  $('propsList').innerHTML=PROPS.filter(x=>!u.has(x[0])).map(x=>`<option value="${x[0]}">${esc(x[1]+' — '+x[2].slice(0,90))}</option>`).join('');
+  renderP();
+}
+function refreshHints(){document.querySelectorAll('.cod').forEach(hintCod);updateList()}
+document.addEventListener('input',e=>{if(e.target.classList&&e.target.classList.contains('cod')){hintCod(e.target);updateList()}});
 function renderP(){
   const q=$('pFiltro').value.trim().toUpperCase();
   const m=PROPS.filter(x=>!q||(x[0]+' '+x[1]+' '+x[2]).toUpperCase().includes(q));
-  $('pBody').innerHTML=m.map(x=>`<tr data-p="${x[0]}"><td>${x[0]}</td><td>${esc(x[1])}</td><td>${esc(x[2])}</td></tr>`).join('')||'<tr><td colspan="3" class="mut">Sin resultados.</td></tr>';
+  const u=usados();
+  $('pBody').innerHTML=m.map(x=>`<tr data-p="${x[0]}"${u.has(x[0])?' style="opacity:.4" title="Ya elegido en este tarjetón"':''}><td>${x[0]}</td><td>${esc(x[1])}</td><td>${esc(x[2])}</td></tr>`).join('')||'<tr><td colspan="3" class="mut">Sin resultados.</td></tr>';
 }
 function buildForm(){
-  $('propsList').innerHTML=PROPS.map(x=>`<option value="${x[0]}">${esc(x[1]+' — '+x[2].slice(0,90))}</option>`).join('');
-  $('pCnt').textContent=PROPS.length;renderP();
+  $('pCnt').textContent=PROPS.length;updateList();
   $('pFiltro').addEventListener('input',renderP);
   $('pBody').addEventListener('click',e=>{
     const tr=e.target.closest('[data-p]');if(!tr)return;
     const cs=[...document.querySelectorAll('.cod')];
     if(cs.some(i=>i.value.trim()===tr.dataset.p))return;
     const libre=cs.find(i=>!i.value.trim());
-    if(libre){libre.value=tr.dataset.p;hintCod(libre)}
+    if(libre){libre.value=tr.dataset.p;hintCod(libre);updateList()}
   });
   $('fLoc').value='ENGATIVÁ';
   chips('fTipo','tipo',['C.C','C.E','T.I','P.E.P']);
@@ -354,6 +385,25 @@ async function guardar(){
   if(!serial)return msg('fMsg','Escribe el serial del formulario.');
   if(tieneRango(me)&&(serial<+me.desde||serial>+me.hasta))return msg('fMsg',`El serial ${serial} no está en tu rango (${me.desde} – ${me.hasta}).`);
   const cods=[...document.querySelectorAll('.cod')].map(i=>i.value.trim());
+  document.querySelectorAll('.falta').forEach(x=>x.classList.remove('falta'));
+  const falt=[];
+  const chk=(ok,nom,el)=>{if(!ok){falt.push(nom);if(el)el.classList.add('falta')}};
+  const ed=parseInt($('fEdad').value,10);
+  chk($('fNombre').value.trim(),'Nombre completo',$('fNombre'));
+  chk(val('tipo'),'Tipo de identificación',$('fTipo'));
+  chk($('fNumId').value.trim(),'Número de identificación',$('fNumId'));
+  chk($('fFecha').value,'Fecha de expedición',$('fFecha'));
+  chk(ed>=1&&ed<=120,'Edad',$('fEdad'));
+  chk(val('sexo'),'Sexo',$('fSexo'));
+  chk(val('org'),'Organización social',$('fOrg'));
+  chk(val('disc'),'¿Tiene discapacidad?',$('fDisc'));
+  if(val('disc')==='SI')chk(val('dtipo'),'Tipo de discapacidad',$('fDiscTipo'));
+  chk(val('estrato'),'Estrato socioeconómico',$('fEstrato'));
+  chk(cods.some(Boolean),'Al menos un código de iniciativa (1 a 5)',document.querySelector('.codes'));
+  if(falt.length){
+    const f=document.querySelector('.falta');if(f&&f.scrollIntoView)f.scrollIntoView({behavior:'smooth',block:'center'});
+    return msg('fMsg','Faltan campos obligatorios: '+falt.join(', ')+'.');
+  }
   const malos=cods.filter(c=>c&&!PMAP[c]);
   if(malos.length)return msg('fMsg','Código(s) que no están en el cuadernillo: '+malos.join(', ')+'. Revisa el tarjetón.');
   const rep=cods.filter((c,i)=>c&&cods.indexOf(c)!==i);
@@ -393,7 +443,7 @@ async function editar(s){
   try{
     const r=mySer[s];if(!r)return;
     editingSerial=+s;$('modoEdit').textContent='· editando serial '+s;
-    $('fSerial').value=r.serial;$('fNombre').value=r.nombre||'';
+    $('fSerial').value=r.serial==null?s:r.serial;$('fNombre').value=r.nombre||'';
     setVal('tipo',r.tipoId||'');$('fNumId').value=r.numId||'';$('fFecha').value=r.fechaExp||'';$('fEdad').value=r.edad||'';
     setVal('sexo',r.sexo||'');setVal('org',r.org||'');setVal('disc',r.disc||'');
     $('discTipoBox').classList.toggle('hide',r.disc!=='SI');setVal('dtipo',r.discTipo||'');setVal('estrato',r.estrato||'');
@@ -402,14 +452,24 @@ async function editar(s){
   }catch(e){msg('fMsg','Error: '+e.message)}
 }
 function pintarMis(){
-  const rs=Object.values(mySer).sort((a,b)=>(a.n||0)-(b.n||0));
+  const rs=Object.entries(mySer).sort((a,b)=>((a[1].n||0)-(b[1].n||0))||(+a[0]-+b[0]));
   $('nDig').textContent=rs.length;
-  $('misReg').innerHTML=rs.map((r,i)=>{const c=r.codigos||[];
-    const cells=[r.n,r.serial,r.localidad,r.nombre,r.tipoId,r.numId,r.fechaExp,r.edad,r.sexo,r.org,r.disc,r.discTipo,r.estrato,c[0],c[1],c[2],c[3],c[4]];
-    return '<tr>'+cells.map(v=>`<td>${esc(v)}</td>`).join('')+`<td><button class="sec" data-ed="${esc(r.serial)}">Editar</button></td></tr>`}).join('')||'<tr><td colspan="19" class="mut">Aún no has digitado formularios.</td></tr>';
+  $('misReg').innerHTML=rs.map(([k,r])=>{const c=r.codigos||[];
+    const cells=[r.n,r.serial==null?k:r.serial,r.localidad,r.nombre,r.tipoId,r.numId,r.fechaExp,r.edad,r.sexo,r.org,r.disc,r.discTipo,r.estrato,c[0],c[1],c[2],c[3],c[4]];
+    return '<tr>'+cells.map(v=>`<td>${esc(v)}</td>`).join('')+`<td style="white-space:nowrap"><button class="sec" data-ed="${esc(k)}">Editar</button> <button class="red" data-del="${esc(k)}">Eliminar</button></td></tr>`}).join('')||'<tr><td colspan="19" class="mut">Aún no has digitado formularios.</td></tr>';
   const sc=document.querySelector('#vCaptura .scroll');sc.scrollTop=sc.scrollHeight;
 }
-$('misReg').addEventListener('click',e=>{const b=e.target.closest('[data-ed]');if(b)editar(b.dataset.ed)});
+$('misReg').addEventListener('click',async e=>{
+  const b=e.target.closest('[data-ed]');if(b)return editar(b.dataset.ed);
+  const d=e.target.closest('[data-del]');if(!d)return;
+  const sr=d.dataset.del;
+  try{
+    if(!(await eliminarRegistro(sr,me.contrato)))return;
+    delete mySer[sr];pintarMis();progreso();
+    if(editingSerial===+sr)limpiar(true);
+    msg('fMsg',`Serial ${sr} eliminado.`,'ok');
+  }catch(err){msg('fMsg','Error al eliminar: '+err.message)}
+});
 
 /* ---------- administración ---------- */
 function salirAdmin(){
@@ -418,7 +478,7 @@ function salirAdmin(){
 }
 async function cargarAdmin(){
   C=await fb('proyecta_contratistas')||{};
-  allIdx={};Object.values(norm(await fb('proyecta_registros'))).forEach(r=>{(allIdx[r.contrato]=allIdx[r.contrato]||{})[r.serial]=1});
+  await cargarRegs();
   pintarAdmin();
 }
 function pintarAdmin(){
@@ -434,7 +494,7 @@ function pintarAdmin(){
   $('tbC').innerHTML=ks.map(k=>{
     const c=C[k];
     const hechos=Object.keys(allIdx[k]||{}).length;
-    return `<tr><td>${esc(c.contrato)}</td><td>${esc(c.nombre)}</td><td>${c.area?esc(c.area):'<span class="mut">sin asignar</span>'}</td><td>${tieneRango(c)?esc(c.desde)+' – '+esc(c.hasta):'<span class="mut">sin asignar</span>'}</td><td>${hechos}</td><td style="white-space:nowrap"><button data-a="${k}">Asignar</button> <button class="sec" data-e="${k}">Editar</button> <button class="red" data-d="${k}">Eliminar</button></td></tr>`;
+    return `<tr data-k="${k}" style="cursor:pointer" title="Ver formularios"><td>${esc(c.contrato)}</td><td>${esc(c.nombre)}</td><td>${c.area?esc(c.area):'<span class="mut">sin asignar</span>'}</td><td>${tieneRango(c)?esc(c.desde)+' – '+esc(c.hasta):'<span class="mut">sin asignar</span>'}</td><td>${hechos}</td><td style="white-space:nowrap"><button data-a="${k}">Asignar</button> <button class="sec" data-e="${k}">Editar</button> <button class="red" data-d="${k}">Eliminar</button></td></tr>`;
   }).join('');
 }
 let editKey=null;
@@ -455,7 +515,8 @@ async function guardarContratista(){
 }
 function cancelarEdicion(){editKey=null;['aNum','aNom','aArea'].forEach(i=>$(i).value='');$('adTitulo').textContent='Agregar contratista'}
 $('tbC').addEventListener('click',async e=>{
-  const b=e.target.closest('button');if(!b)return;
+  const b=e.target.closest('button');
+  if(!b){const tr=e.target.closest('tr[data-k]');if(tr){seleccionar(tr.dataset.k);window.scrollTo({top:0,behavior:'smooth'})}return}
   if(b.dataset.a){seleccionar(b.dataset.a);window.scrollTo({top:0,behavior:'smooth'})}
   if(b.dataset.e){const c=C[b.dataset.e];editKey=String(c.contrato);
     $('aNum').value=c.contrato;$('aNom').value=c.nombre;$('aArea').value=c.area||'';
@@ -479,6 +540,13 @@ function buscar(){
   $('sRes').innerHTML=m.slice(0,8).map(k=>`<button class="sec" style="margin:3px 6px 3px 0;text-align:left" data-s="${k}">${k} · ${esc(C[k].nombre)}</button>`).join('')+(m.length>8?`<div class="mut">…y ${m.length-8} más, escribe más dígitos.</div>`:'');
 }
 function ultimoAsignado(){let mx=0;for(const k in C){if(tieneRango(C[k]))mx=Math.max(mx,+C[k].hasta)}return mx}
+function pintarFormsSel(k){
+  const rs=Object.entries(allReg).filter(([,r])=>String(r.contrato)===String(k)).sort((a,b)=>((a[1].n||0)-(b[1].n||0))||(+a[0]-+b[0]));
+  $('sFCnt').textContent=rs.length;
+  $('sFBody').innerHTML=rs.map(([key,r])=>{const c=r.codigos||[];
+    const cells=[r.n,r.serial==null?key:r.serial,r.localidad,r.nombre,r.tipoId,r.numId,r.fechaExp,r.edad,r.sexo,r.org,r.disc,r.discTipo,r.estrato,c[0],c[1],c[2],c[3],c[4]];
+    return '<tr>'+cells.map(v=>`<td>${esc(v)}</td>`).join('')+`<td><button class="red" data-del="${esc(key)}">Eliminar</button></td></tr>`}).join('')||'<tr><td colspan="19" class="mut">Este contratista aún no ha registrado formularios.</td></tr>';
+}
 function seleccionar(k){
   const c=C[k];if(!c)return;
   sel=String(k);
@@ -488,6 +556,7 @@ function seleccionar(k){
   $('sDes').value=tieneRango(c)?c.desde:'';$('sHas').value=tieneRango(c)?c.hasta:'';
   const u=ultimoAsignado();
   $('sHint').textContent=u?`Último serial asignado: ${u} · siguiente libre: ${u+1}`:'Aún no hay seriales asignados.';
+  pintarFormsSel(k);
   $('sDes').focus();
 }
 function solapa(d,h,except){
@@ -502,7 +571,7 @@ async function asignar(quitar){
   if(d!==''&&(+d<1||+h<+d))return msg('sMsg','El serial "hasta" debe ser mayor o igual al "desde".');
   try{
     C=await fb('proyecta_contratistas')||{};
-    allIdx={};Object.values(norm(await fb('proyecta_registros'))).forEach(r=>{(allIdx[r.contrato]=allIdx[r.contrato]||{})[r.serial]=1});
+    await cargarRegs();
     if(!C[sel])return msg('sMsg','El contratista ya no existe.');
     if(d!==''){
       const o=solapa(+d,+h,sel);
@@ -519,6 +588,15 @@ $('sBuscar').addEventListener('input',buscar);
 $('sBuscar').addEventListener('keydown',e=>{if(e.key==='Enter'){const b=$('sRes').querySelector('[data-s]');if(b)seleccionar(b.dataset.s)}});
 $('sRes').addEventListener('click',e=>{const b=e.target.closest('[data-s]');if(b){$('sRes').innerHTML='';seleccionar(b.dataset.s)}});
 $('btnAsig').onclick=()=>asignar(false);
+$('btnFRef').onclick=async()=>{if(!sel)return;const k=sel;try{await cargarAdmin();seleccionar(k)}catch(e){msg('sMsg','Error: '+e.message)}};
+$('sFBody').addEventListener('click',async e=>{
+  const b=e.target.closest('[data-del]');if(!b||!sel)return;
+  const key=b.dataset.del,k=sel;
+  try{
+    if(!(await eliminarRegistro(key,k)))return;
+    await cargarAdmin();seleccionar(k);msg('sMsg',`Serial ${key} eliminado.`,'ok');
+  }catch(err){msg('sMsg','Error al eliminar: '+err.message)}
+});
 $('btnQuitar').onclick=()=>asignar(true);
 
 /* ---------- descarga ---------- */
@@ -526,17 +604,18 @@ const COLS=['N°','Serial','Contrato','Contratista','Área','Localidad','Nombre 
 let lastRows=[];
 function renderR(){
   const q=$('rFiltro').value.trim().toLowerCase();
-  $('rHead').innerHTML='<tr>'+COLS.map(c=>`<th>${esc(c)}</th>`).join('')+'</tr>';
+  $('rHead').innerHTML='<tr>'+COLS.map(c=>`<th>${esc(c)}</th>`).join('')+'<th></th></tr>';
   const da=$('dArea').value;
   const m=lastRows.filter(r=>(!da||String(r[4]).toUpperCase()===da)&&(!q||r.slice(0,7).join(' ').toLowerCase().includes(q)));
-  $('rBody').innerHTML=m.slice(0,300).map(r=>'<tr>'+r.map(v=>`<td>${esc(v)}</td>`).join('')+'</tr>').join('')||`<tr><td colspan="${COLS.length}" class="mut">Sin registros.</td></tr>`;
+  $('rBody').innerHTML=m.slice(0,300).map(r=>'<tr>'+r.map(v=>`<td>${esc(v)}</td>`).join('')+`<td><button class="red" data-del="${esc(r.key==null?r[1]:r.key)}" data-c="${esc(r[2])}">Eliminar</button></td></tr>`).join('')||`<tr><td colspan="${COLS.length+1}" class="mut">Sin registros.</td></tr>`;
   $('rCnt').textContent=`Mostrando ${Math.min(m.length,300)} de ${m.length} registros${m.length>300?' (usa el filtro o descarga el Excel para ver todos)':''}.`;
 }
 async function filas(){
   msg('rMsg','');$('rMsg').textContent='Cargando…';
   const all=norm(await fb('proyecta_registros'));
-  const rows=Object.values(all).sort((a,b)=>a.serial-b.serial).map(r=>{const c=r.codigos||[];
-    return [r.n,r.serial,r.contrato,r.contratista,((C[r.contrato]||{}).area||r.area||''),r.localidad,r.nombre,r.tipoId,r.numId,r.fechaExp,r.edad,r.sexo,r.org,r.disc,r.discTipo,r.estrato,c[0]||'',c[1]||'',c[2]||'',c[3]||'',c[4]||'',r.ts].map(v=>typeof v==='string'?v.toUpperCase():v)});
+  const rows=Object.entries(all).sort((a,b)=>(+(a[1].serial==null?a[0]:a[1].serial))-(+(b[1].serial==null?b[0]:b[1].serial))).map(([k,r])=>{const c=r.codigos||[];
+    const row=[r.n,r.serial==null?k:r.serial,r.contrato,r.contratista,((C[r.contrato]||{}).area||r.area||''),r.localidad,r.nombre,r.tipoId,r.numId,r.fechaExp,r.edad,r.sexo,r.org,r.disc,r.discTipo,r.estrato,c[0]||'',c[1]||'',c[2]||'',c[3]||'',c[4]||'',r.ts].map(v=>typeof v==='string'?v.toUpperCase():v);
+    row.key=k;return row});
   $('rMsg').textContent=rows.length+' registros en Firebase.';
   lastRows=rows;renderR();
   return rows;
@@ -574,6 +653,14 @@ $('fNum').addEventListener('input',pintarAdmin);
 $('fNom').addEventListener('input',pintarAdmin);
 $('btnCancelC').onclick=cancelarEdicion;
 $('rFiltro').addEventListener('input',renderR);
+$('rBody').addEventListener('click',async e=>{
+  const b=e.target.closest('[data-del]');if(!b)return;
+  try{
+    if(!(await eliminarRegistro(b.dataset.del,b.dataset.c)))return;
+    await cargarAdmin();await filas();
+    $('rMsg').textContent=`Serial ${b.dataset.del} eliminado.`;
+  }catch(err){$('rMsg').textContent='Error al eliminar: '+err.message}
+});
 $('btnXlsx').onclick=descargar;
 $('dArea').onchange=renderR;
 document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{
