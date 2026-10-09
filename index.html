@@ -45,6 +45,8 @@ td input{padding:6px;font-size:13px}
 input.falta,select.falta{border-color:var(--red);background:#fff1f2}
 .chips.falta,.codes.falta{outline:2px solid var(--red);outline-offset:3px;border-radius:8px}
 .req{color:var(--red)}
+.aviso{background:#fdebd0;border-left:4px solid #F25C00;border-radius:6px;padding:10px 12px;font-size:12.5px;line-height:1.45;color:#5a3b1e;margin-bottom:12px}
+.nota{background:#fff7e8;border-left:4px solid #F9A603;border-radius:6px;padding:9px 12px;font-size:12.5px;line-height:1.45;color:#5a3b1e;margin:8px 0 2px}
 input[type=text]{text-transform:uppercase}
 input::placeholder{text-transform:none}
 td{text-transform:uppercase}
@@ -65,6 +67,7 @@ td{text-transform:uppercase}
 
 <!-- INGRESO CONTRATISTA -->
 <section id="vLogin" class="card">
+  <div class="aviso">Los <b>Presupuestos Participativos</b> son un mecanismo de democracia directa donde la ciudadanía decide de forma transparente cómo invertir una parte del presupuesto público de su municipio o localidad. En este proceso, los propios vecinos proponen, debaten y votan proyectos prioritarios —como obras comunitarias, programas culturales o mejoras urbanas— para dar respuesta a las necesidades reales de su comunidad.</div>
   <h2>Ingresa tu número de contrato</h2>
   <input type="number" id="inContrato" placeholder="Ej: 1193" inputmode="numeric">
   <div style="margin-top:10px"><button id="btnIngresar">Ingresar</button></div>
@@ -83,6 +86,7 @@ td{text-transform:uppercase}
   </div>
 
   <div class="card" id="formCard">
+    <div class="aviso">Los datos suministrados serán tratados de conformidad con lo establecido en la resolución 777 de 2019 por medio de la cual se adopta la Política de Privacidad y Tratamiento de Datos Personales de la Secretaría General de la Alcaldía Mayor de Bogotá y no podrán utilizarse con fines fiscales, ni judiciales, ni para otros propósitos diferentes al ejercicio de Proyecta Local - Presupuestos Participativos.</div>
     <h2>Formulario <span id="modoEdit" class="mut"></span></h2>
     <div class="row">
       <div><label class="l">Serial <span class="req">*</span></label><input type="number" id="fSerial" inputmode="numeric"></div>
@@ -95,6 +99,7 @@ td{text-transform:uppercase}
       <div><label class="l">4. Fecha de expedición <span class="req">*</span></label><input type="date" id="fFecha"></div>
       <div><label class="l">5. Edad <span class="req">*</span></label><input type="number" id="fEdad" min="0" max="120" inputmode="numeric"></div>
     </div>
+    <div class="nota"><b>Nota sobre la fecha de expedición:</b> La fecha de expedición funciona como una clave de seguridad que valida la autenticidad de tu documento y evita que otra persona use tu número de cédula para votar o registrar propuestas en tu lugar. De esta manera, se garantiza la transparencia del proceso, la protección de tu identidad y el principio de "un ciudadano, un voto".</div>
     <label class="l">6. Sexo <span class="req">*</span></label><div class="chips" id="fSexo"></div>
     <label class="l">7. Organización social <span class="req">*</span></label><div class="chips" id="fOrg"></div>
     <label class="l">8. ¿Tiene alguna discapacidad? <span class="req">*</span></label><div class="chips" id="fDisc"></div>
