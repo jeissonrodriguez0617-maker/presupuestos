@@ -32,6 +32,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
 .msg.err{background:#fde7e5;color:var(--red)}.msg.ok{background:#fde3b8;color:var(--ok)}.msg.warn{background:#fde3b8;color:var(--warn)}
 .range{background:#fdebd0;border:1px solid var(--bd);border-radius:8px;padding:12px;font-size:15px}
 .range b{font-size:20px;color:var(--g)}
+.imp-sum{background:#fdebd0;border:1px solid var(--bd);border-radius:8px;padding:10px 12px;margin-bottom:8px}.imp-err td{font-size:13px;vertical-align:top}
 .avance{border-bottom:1px solid var(--bd);padding-bottom:14px;margin-bottom:14px}
 .kps{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0}.kp{background:#fdebd0;border:1px solid var(--bd);border-radius:10px;padding:10px 12px}.kp b{display:block;font-size:24px;color:var(--g);line-height:1.1}.kp span{font-size:12.5px;color:var(--mut)}
 .dns{display:flex;justify-content:space-around;gap:6px;margin:10px 0 6px;flex-wrap:wrap}.dn{text-align:center;flex:1;min-width:90px;max-width:150px}.dn svg{width:100%;display:block}.dn b{display:block;font-size:15px}.dn span{font-size:13px;color:var(--mut)}
@@ -161,6 +162,13 @@ td{text-transform:uppercase}
         <div id="sMsg"></div>
         <div class="row" style="align-items:center;margin-top:14px"><h2 style="margin:0">Formularios registrados (<span id="sFCnt">0</span>)</h2><div style="flex:0 0 auto"><button class="sec" id="btnFRef">Actualizar</button></div></div>
         <div class="scroll" style="margin-top:8px"><table class="wide"><thead><tr><th>N°</th><th>Serial</th><th>Localidad</th><th>Nombre</th><th>Tipo ID</th><th>Número ID</th><th>Fecha Exp</th><th>Edad</th><th>Sexo</th><th>Org. Social</th><th>¿Discapacidad?</th><th>Tipo Discapacidad</th><th>Estrato</th><th>Código1</th><th>Código2</th><th>Código3</th><th>Código4</th><th>Código5</th><th></th></tr></thead><tbody id="sFBody"></tbody></table></div>
+        <div id="impBox" style="margin-top:16px;border-top:1px solid var(--bd);padding-top:14px">
+          <h2 style="margin:0 0 6px">Importar votos desde Excel</h2>
+          <div class="mut">Carga un Excel con los votos de <b>este contratista</b>. Columnas: Serial, Nombre, Tipo ID, Número ID, Fecha Exp, Edad, Sexo, Org. Social, ¿Discapacidad?, Tipo Discapacidad, Estrato, Código1 a Código5. Se aplican las mismas validaciones del formulario. La columna Serial es opcional: los seriales que falten se asignan solos del rango del contratista.</div>
+          <div class="row" style="margin-top:8px"><button class="sec" id="btnPlantilla">Descargar plantilla</button></div>
+          <input type="file" id="impFile" accept=".xlsx,.xls,.csv" style="margin-top:10px">
+          <div id="impRes" style="margin-top:10px"></div>
+        </div>
       </div>
     </div>
     <div class="card">
@@ -206,6 +214,7 @@ const LOCS=['Usaquén','Chapinero','Santa Fe','San Cristóbal','Usme','Tunjuelit
 const SEED=[[886,"LADY LORENA MARTINEZ","IVC"],[887,"DEYSI ALEXANDRA MONTENEGRO RAMOS","IVC"],[908,"JOHN ALEXANDER MONCADA GOMEZ","IVC"],[909,"CAMILO ANDRÉS VARGAS VILLALOBOS","IVC"],[931,"DANNYS LORENA VERGARA CARRANZA","IVC"],[932,"MIGUEL ANGEL RODRIGUEZ RODRIGUEZ","IVC"],[981,"HECTOR JULIO RAMIREZ SIERRA","IVC"],[982,"DAVID ALEJANDRO ALBA CRUZ","IVC"],[983,"GERMAN FERNANDO ARDILA FLOREZ","IVC"],[994,"ANA YAMILE ESPITIA SICHACHA","IVC"],[995,"JHON ALEXANDER LADINO SILVA","IVC"],[1005,"MAURICIO ALEJANDRO FERNANDEZ PRIETO","IVC"],[1006,"ANGIEE LIZETH AVILA PEREZ","IVC"],[1007,"NATHA SAMUEL URBINA TORRES","IVC"],[1017,"JOSE GREGORIO GONZALEZ CHADID","IVC"],[1018,"MILTON STEVEN RINCON CHALA","IVC"],[1025,"MARIA NATALIA ALVAREZ RUEDA","IVC"],[1027,"JENIFFER ALEXANDRA NIETO ROJAS","IVC"],[1050,"LUZ AMANDA CAMARGO CAMARGO","IVC"],[1051,"JAIRO ADEMID LOZANO MARTINEZ","IVC"],[1052,"HENRY HERNAN FORIGUA GARCIA","IVC"],[1058,"JENIFER VANESA ESPINOSA BERNAL","IVC"],[1070,"JENNY PAOLA ARROYO LOZADA","IVC"],[1099,"NICOLAS GALEANO","IVC"],[1100,"CAROL DAYANA FORERO MUÑOZ","IVC"],[1148,"OSCAR IVAN PAJARITO AVENDAÑO","IVC"],[1149,"JESUS ANDRÉS ARIAS TIGREROS","IVC"],[1150,"LAURA DANIELA DELGADILLO NIÑO","IVC"],[1165,"FUAD DAVID CHADID BALSEIRO","IVC"],[1253,"CRISTIAN JOAQUIN GIL APONTE","IVC"],[1079,"DANIELA ALEJANDRA QUINTERO BENAVIDES","IVC"],[1080,"ROBERT HUMBERTO QUINTERO QUINTERO","IVC"],[1192,"LUISA FERNANDA ROJAS GOMEZ","IVC"],[1193,"JEISSON ANDRES RODRIGUEZ SANTAMARIA","IVC"],[1195,"WILSON PULIDO SANCHEZ","IVC"],[1196,"WILDEMAR CARVAJAL","IVC"],[1200,"EFREN SIERRA ORTIZ","IVC"],[1201,"LILIANA CHARRY","IVC"],[1313,"JUAN SEBASTIAN CRUZ PRADA","IVC"],[866,"LAURA DANIELA ALARCON AVILA","SYC"],[867,"WILSON VERGARA","SYC"],[868,"MAXIMILIANO RINCON GARCIA","SYC"],[869,"JUAN CARLOS CARDENAS ARIZA","PET"],[870,"BRAJAN STEVE GONZALEZ MOLINA","EE"],[878,"MARIA FERNANDA BORRERO RUEDA","SYC"],[879,"YESIKA ORTEGON CRIOLLO","PET"],[880,"NATHALY JOHANNA LUGO ROZO","PET"],[898,"HELLEN YARITZA ESCOBER GOMEZ","EE"],[899,"MARIA LUISA LOPEZ RIGUEROS","EE"],[900,"GLORIA PATRICIA TORRES BARON","EE"],[901,"LADY DIANA PARRA GARCIA","EE"],[902,"JOHN FREDY GUTIERREZ TRASLAVIÑA","PET"],[910,"SANYA FRANCINA RIAÑO TORRES","PET"],[916,"CRISTINA ISABEL GOMEZ MORENO","PET"],[918,"LINDA TATIANA GIL ROJAS","PET"],[945,"SANDRA JEANET AVILA ALVARADO","SYC"],[946,"JOAN DAVID FERRER","SYC"],[947,"DANIEL FELIPE PERILLA MESA","SYC"],[948,"JOSE LUIS VEGA MORENO","SYC"],[990,"JUAN DAVID BEDOYA CONTO","EE"],[996,"KEVIN SANTIAGO RINCON CASTIBLANCO","EE"],[997,"JEIMMY SIERRA GODOY","EE"],[998,"PAOLA ANDREA GONZALEZ HENAO","EE"],[999,"LILIANA MILENA CAMARGO","EE"],[1036,"ANA MELISA LARA PLATIN","SYC"],[1037,"JOHAN ALEXANDER RAMIREZ RINCON","SYC"],[1044,"IVO IGNACIO MOLINA TORRES","SYC"],[1045,"LUIS EDUARDO RODRIGUEZ LOPEZ","SYC"],[1046,"MANUEL DUVAN GONZALO VELASQUEZ GRACIA","SYC"],[1049,"JUAN FRANCISCO PEREZ BUITRAGO","SYC"],[1054,"JAVIER JESUS CHAPARRO MARTINEZ","SYC"],[1055,"NELSON MEDARDO ACOSTA VALLEJO","SYC"],[1056,"EDUARD ROMERO CRUZ","SYC"],[1057,"MANUEL DAVID GOMEZ PINEDA","SYC"],[1059,"MARGARITA ESPERANZA ORTIZ GONZALEZ","SYC"],[1060,"ALBA CRISTINA DEAZA BELLO","SYC"],[1061,"ANA LUCINDA PIZA","SYC"],[1062,"JOSE ROBERTO PINILLA LARA","SYC"],[1063,"EDWARD HERRERA GALEANO","SYC"],[1064,"JORGE ALBERTO SANABRIA BARRETO","SYC"],[1065,"MATEO CORDOBA BEJARANO","SYC"],[1066,"LUIS FERNANDO LOPEZ MARIN","SYC"],[1067,"CESAR AUGUSTO SOTO SOLENO","SYC"],[1068,"YAMILE COLORADO SALAZAR","SYC"],[1075,"JULIO CESAR PEREZ AVILA","SYC"],[1077,"JHON ALEX BARRERA MOSQUERA","SYC"],[1078,"ANDRÉS DAVID CANTOR TURRIAGO","SYC"],[1101,"SERGIO ANTONIO VILLEGAS ARISTIZABAL","SYC"],[1102,"SANDRA MILENA POLOCHE GUZMAN","SYC"],[1103,"SARA TAVERA","SYC"],[1142,"FARID ANDRES SOTO RODRIGUEZ","SYC"],[1147,"JULIAN ESTEBAN VARGAS PLAZAS","SYC"],[1178,"LUIS ALVARO RODRIGUEZ BELTRAN","PET"],[1240,"LAURA ROCIO AMAYA","PET"],[1241,"ESMERALDA ORTIZ PLAZAS","PET"],[1278,"GERMAN ALEXANDER GONZALEZ GAMBOA","SYC"],[1309,"LIZETH DAYANA RUBIANO PULIDO","SYC"]];
 
 const $=id=>document.getElementById(id);
+const OPC={tipo:['C.C','C.E','T.I','P.E.P'],sexo:['Masculino','Femenino','Trans','Otro','No binario','No decirlo'],org:['JAL','JAC','O. Sociales','No responde','CPL','M. Comunitarios','Otro','Ninguna'],disc:['SI','NO'],dtipo:['Auditiva','Sordoceguera','Física','Visual','Intelectual','Múltiple','Psicosocial'],estrato:['1','2','3','4','5','6']};
 const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function msg(el,t,k){$(el).innerHTML=t?`<div class="msg ${k||'err'}">${esc(t)}</div>`:''}
 async function fb(path,method,body){
@@ -311,12 +320,12 @@ function buildForm(){
     if(libre){libre.value=tr.dataset.p;hintCod(libre);updateList()}
   });
   $('fLoc').value='ENGATIVÁ';
-  chips('fTipo','tipo',['C.C','C.E','T.I','P.E.P']);
-  chips('fSexo','sexo',['Masculino','Femenino','Trans','Otro','No binario','No decirlo']);
-  chips('fOrg','org',['JAL','JAC','O. Sociales','No responde','CPL','M. Comunitarios','Otro','Ninguna']);
-  chips('fDisc','disc',['SI','NO']);
-  chips('fDiscTipo','dtipo',['Auditiva','Sordoceguera','Física','Visual','Intelectual','Múltiple','Psicosocial']);
-  chips('fEstrato','estrato',['1','2','3','4','5','6']);
+  chips('fTipo','tipo',OPC.tipo);
+  chips('fSexo','sexo',OPC.sexo);
+  chips('fOrg','org',OPC.org);
+  chips('fDisc','disc',OPC.disc);
+  chips('fDiscTipo','dtipo',OPC.dtipo);
+  chips('fEstrato','estrato',OPC.estrato);
   document.querySelectorAll('input[name="disc"]').forEach(i=>i.addEventListener('change',()=>{
     $('discTipoBox').classList.toggle('hide',val('disc')!=='SI');
     if(val('disc')!=='SI')setVal('dtipo','');
@@ -359,8 +368,12 @@ async function cargarAvance(){
     const conReg=new Set(RR.filter(r=>r&&typeof r==='object').map(r=>String(r.contrato))).size,totC=Object.keys(CC).length;
     const kp=(v,l)=>`<div class="kp"><b>${v}</b><span>${l}</span></div>`;
     const kpis=`<div class="kps">${kp(T.dig,'Formularios digitados')}${kp(Math.max(0,T.asig-T.dig),'Formularios faltantes')}${kp(T.asig,'Formularios asignados')}${kp(conReg+' de '+totC,'Contratistas con registros')}</div>`;
+    const cnt={};RR.forEach(r=>{if(r&&typeof r==='object'){const k=String(r.contrato);cnt[k]=(cnt[k]||0)+1}});
+    const lista=Object.keys(cnt).map(k=>{const c=CC[k]||{};const a=tieneRango(c)?Math.max(0,+c.hasta-+c.desde+1):0;return {nom:String(c.nombre||('CONTRATO '+k)).toUpperCase(),area:String(c.area||'').toUpperCase(),dig:cnt[k],asig:a,p:a?Math.min(100,Math.round(cnt[k]/a*100)):0}})
+      .sort((x,y)=>y.p-x.p||y.dig-x.dig||x.nom.localeCompare(y.nom));
+    const lis=lista.length?`<details open style="margin-top:10px"><summary style="cursor:pointer;font-weight:700;margin-bottom:6px">Contratistas que han diligenciado formularios (${lista.length})</summary><div class="scroll" style="max-height:340px;padding:4px 10px">${lista.map(x=>`<div class="avr"><div class="t"><span><b style="font-size:14px">${esc(x.nom)}</b>${x.area?` <span class="mut">· ${esc(x.area)}</span>`:''}</span><span>${x.dig}${x.asig?' de '+x.asig:''} formularios${x.asig?` · <b>${x.p}%</b>`:''}</span></div><div class="tr"><i style="width:${x.p}%"></i></div></div>`).join('')}</div></details>`:'';
     box.className='';
-    box.innerHTML=keys.length?kpis+`<div class="dns">${dona('TODAS',T,true)}${keys.map(k=>dona(k,A[k])).join('')}</div><div class="mut" style="text-align:center;font-size:12px">Formularios digitados de los asignados</div>`:'<span class="mut">Aún no hay formularios digitados.</span>';
+    box.innerHTML=keys.length?kpis+`<div class="dns">${dona('TODAS',T,true)}${keys.map(k=>dona(k,A[k])).join('')}</div><div class="mut" style="text-align:center;font-size:12px">Formularios digitados de los asignados</div>${lis}`:'<span class="mut">Aún no hay formularios digitados.</span>';
   }catch(e){box.className='mut';box.textContent='No se pudo cargar el avance: '+e.message}
 }
 /* ---------- ingreso contratista ---------- */
@@ -588,6 +601,7 @@ function pintarFormsSel(k){
 function seleccionar(k){
   const c=C[k];if(!c)return;
   sel=String(k);
+  impItems=[];impRaw=null;$('impRes').innerHTML='';$('impFile').value='';
   $('sAsig').classList.remove('hide');msg('sMsg','');
   const hechos=Object.keys(allIdx[k]||{}).length;
   $('sInfo').innerHTML=`<b>${esc(c.nombre)}</b><div class="mut">Contrato ${esc(c.contrato)} · Área: ${c.area?esc(c.area):'sin asignar'} · ${hechos} digitados</div>`;
@@ -658,6 +672,13 @@ async function filas(){
   lastRows=rows;renderR();
   return rows;
 }
+let _xs=null;
+async function xlsxEstilos(){ /* SheetJS con estilos (fuente) solo para exportar; no pisa la librería usada al importar */
+  if(_xs)return _xs;
+  const X0=window.XLSX;
+  await new Promise((ok,no)=>{const sc=document.createElement('script');sc.src='https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js';sc.onload=ok;sc.onerror=()=>no(new Error('no cargó'));document.head.appendChild(sc)});
+  _xs=window.XLSX;if(X0)window.XLSX=X0;return _xs;
+}
 async function descargar(){
   try{
     const rows=await filas();
@@ -665,8 +686,28 @@ async function descargar(){
     const sel=da?rows.filter(r=>String(r[4]).toUpperCase()===da):rows;
     if(!sel.length){$('rMsg').textContent='No hay registros'+(da?' para el área '+da:'')+'.';return}
     const nombre='proyecta_local_'+(da?da.replace(/[^A-Z0-9]+/g,'_')+'_':'')+new Date().toISOString().slice(0,10);
-    const ws=XLSX.utils.aoa_to_sheet([COLS.map(c=>c.toUpperCase()),...sel]);
-    const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Registros');XLSX.writeFile(wb,nombre+'.xlsx');
+    /* formato idéntico al modelo "Votantes": mismos encabezados, hoja "Base de datos", Calibri 11 */
+    let XS;try{XS=await xlsxEstilos()}catch(e){XS=XLSX}
+    const FT={font:{name:'Calibri',sz:11}};
+    const H=['Serial','Localidad','Nombre','Tipo ID','Número ID','Fecha Exp','Edad','Sexo','Org. Social','¿Discapacidad?','Tipo Discapacidad','Estrato','Código1','Código2','Código3','Código4','Código5','Priorizaciones'];
+    const num=v=>{const t=String(v==null?'':v).trim();return /^[1-9]\d{0,14}$|^0$/.test(t)?+t:t.toUpperCase()};
+    const ws={};const col=i=>String.fromCharCode(65+i);
+    H.forEach((h,i)=>{ws[col(i)+'1']={t:'s',v:h,s:FT}});
+    sel.forEach((r,k)=>{
+      const vals=[r[1],r[5],r[6],r[7],r[8],r[9],r[10],r[11],r[12],r[13],r[14],r[15],r[16],r[17],r[18],r[19],r[20],''];
+      vals.forEach((v,i)=>{
+        const ref=col(i)+(k+2);
+        if(i===17||v===''||v==null)return;
+        if(i===5){const m=String(v).match(/^(\d{4})-(\d{2})-(\d{2})/);
+          if(m){ws[ref]={t:'n',v:(Date.UTC(+m[1],+m[2]-1,+m[3])-Date.UTC(1899,11,30))/86400000,z:'dd/mm/yyyy',s:{font:FT.font,numFmt:'dd/mm/yyyy'}}}
+          else ws[ref]={t:'s',v:String(v).toUpperCase(),s:FT};return}
+        const n=(i===0||i===4||i===6||i===11||i>=12)?num(v):String(v).toUpperCase();
+        ws[ref]=typeof n==='number'?{t:'n',v:n,s:FT}:{t:'s',v:String(n),s:FT};
+      });
+    });
+    ws['!ref']='A1:R'+(sel.length+1);
+    ws['!cols']=H.map((h,i)=>i===9?{wch:13.54}:{});
+    const wb=XS.utils.book_new();XS.utils.book_append_sheet(wb,ws,'Base de datos');XS.writeFile(wb,nombre+'.xlsx');
     $('rMsg').textContent=sel.length+' registros descargados'+(da?' · área '+da:'')+'.';
   }catch(e){$('rMsg').textContent='Error: '+e.message}
 }
@@ -707,6 +748,173 @@ document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{
   if(b.dataset.t==='tR')filas();
 });
 init();
+
+/* ---------- importador de votos desde Excel (administración) ---------- */
+let impItems=[],impRaw=null,impNAuto=0;
+const nrm=x=>String(x==null?'':x).normalize('NFD').replace(/[̀-ͯ]/g,'').toUpperCase().replace(/[^A-Z0-9]/g,'');
+const IMP_H={SERIAL:'serial',NOMBRE:'nombre',NOMBRECOMPLETO:'nombre',TIPOID:'tipo',TIPODEIDENTIFICACION:'tipo',TIPO:'tipo',NUMEROID:'numId',NUMID:'numId',NUMERODEIDENTIFICACION:'numId',DOCUMENTO:'numId',
+ FECHAEXP:'fecha',FECHAEXPEDICION:'fecha',FECHADEEXPEDICION:'fecha',EDAD:'edad',SEXO:'sexo',ORGSOCIAL:'org',ORGANIZACIONSOCIAL:'org',ORG:'org',
+ DISCAPACIDAD:'disc',TIENEDISCAPACIDAD:'disc',TIPODISCAPACIDAD:'dtipo',CUALDISCAPACIDAD:'dtipo',DISCTIPO:'dtipo',ESTRATO:'estrato',CONTRATO:'contrato',
+ CODIGO1:'c0',CODIGO2:'c1',CODIGO3:'c2',CODIGO4:'c3',CODIGO5:'c4'};
+const IMP_COLS=['Serial','Nombre','Tipo ID','Número ID','Fecha Exp','Edad','Sexo','Org. Social','¿Discapacidad?','Tipo Discapacidad','Estrato','Código1','Código2','Código3','Código4','Código5'];
+function impCampo(h){ /* reconoce el encabezado por palabras clave (tolera textos largos como "NOMBRE COMPLETO - En mayúscula") */
+  const n=nrm(h);if(!n)return '';
+  const has=(...a)=>a.some(x=>n.includes(x));
+  const m=n.match(/CODIGO\D*([1-5])/);if(m)return 'c'+(+m[1]-1);
+  if(has('SERIAL'))return 'serial';
+  if(has('NOMBRE'))return 'nombre';
+  if(has('FECHA'))return 'fecha';
+  if(has('EDAD'))return 'edad';
+  if(has('ESTRATO'))return 'estrato';
+  if(has('SEXO','GENERO'))return 'sexo';
+  if(has('ORGANIZACION','ORGSOCIAL'))return 'org';
+  if(has('DISCAPACIDAD','ELIGIO'))return (has('TIPO','CUAL','ELIGIO')?'dtipo':'disc');
+  if(has('NUMERO','NUM','CEDULA','DOCUMENTO')&&!has('TIPO'))return 'numId';
+  if(has('TIPO'))return 'tipo';
+  if(n==='CONTRATO')return 'contrato';
+  return '';
+}
+function impFecha(v){
+  if(v==null||v==='')return '';
+  let y,m,d;
+  if(typeof v==='number'){const p=XLSX.SSF.parse_date_code(v);if(!p)return '';y=p.y;m=p.m;d=p.d}
+  else if(v instanceof Date){y=v.getFullYear();m=v.getMonth()+1;d=v.getDate()}
+  else{const t=String(v).trim();let a=t.match(/^(\d{4})[-\/.](\d{1,2})[-\/.](\d{1,2})/);
+    if(a){y=+a[1];m=+a[2];d=+a[3]}else{a=t.match(/^(\d{1,2})[-\/.](\d{1,2})[-\/.](\d{4})/);if(!a)return '';d=+a[1];m=+a[2];y=+a[3]}}
+  const dt=new Date(y,m-1,d);
+  if(y<1900||dt.getFullYear()!==y||dt.getMonth()!==m-1||dt.getDate()!==d||dt>new Date())return '';
+  return y+'-'+String(m).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+}
+function impOpt(lista,v){const n=nrm(v);return lista.find(o=>nrm(o)===n)||''}
+function impCel(v){return v==null?'':(typeof v==='number'?String(v):String(v)).trim()}
+function descargarPlantilla(){
+  const ws=XLSX.utils.aoa_to_sheet([IMP_COLS.map(c=>c.toUpperCase())]);
+  const ay=XLSX.utils.aoa_to_sheet([['CAMPO','VALORES PERMITIDOS'],['Serial','Opcional. Si está vacío (o si se marca la asignación automática) el aplicativo asigna los seriales libres del rango del contratista'],['Nombre','Texto'],['Tipo ID',OPC.tipo.join(' | ')],['Número ID','Número del documento'],['Fecha Exp','DD/MM/AAAA (fecha de expedición del documento)'],['Edad','1 a 120'],['Sexo',OPC.sexo.join(' | ')],['Org. Social',OPC.org.join(' | ')],['¿Discapacidad?','SI | NO'],['Tipo Discapacidad','Obligatorio si ¿Discapacidad? es SI: '+OPC.dtipo.join(' | ')],['Estrato',OPC.estrato.join(' | ')],['Código1 a Código5','Códigos del cuadernillo; mínimo 1, máximo 5, sin repetir'],['Localidad','No se escribe: siempre es ENGATIVÁ']]);
+  const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Votos');XLSX.utils.book_append_sheet(wb,ay,'Instrucciones');
+  XLSX.writeFile(wb,'plantilla-votos.xlsx');
+}
+async function impLeer(file){
+  if(!sel||!C[sel]){msg('impRes','Primero busca y selecciona un contratista.');return}
+  const c=C[sel];
+  if(typeof XLSX==='undefined'){msg('impRes','No se cargó la librería de Excel. Revisa tu conexión y recarga la página.');return}
+  $('impRes').innerHTML='<div class="mut">Leyendo archivo…</div>';
+  let rows;
+  try{
+    const wb=XLSX.read(await file.arrayBuffer(),{type:'array'});
+    rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1,raw:true,defval:''});
+  }catch(e){msg('impRes','No se pudo leer el archivo: '+e.message);return}
+  let hi=rows.slice(0,15).findIndex(r=>r.some(x=>['serial','nombre'].includes(impCampo(x))));
+  if(hi<0){msg('impRes','No se encontró la fila de encabezados. Usa la plantilla (botón Descargar plantilla).');return}
+  const col={};const sinRec=[];rows[hi].forEach((h,i)=>{const k=impCampo(h);if(k&&!(k in col))col[k]=i;else if(String(h).trim())sinRec.push(String(h).trim())});
+  let fresh;
+  try{fresh=norm(await fb('proyecta_registros'))}catch(e){msg('impRes','No se pudo consultar Firebase: '+e.message);return}
+  const g=(r,k)=>k in col?r[col[k]]:'';
+  impRaw={rows,hi,col,fresh,sinRec,sinCol:['nombre','tipo','numId','fecha','edad','sexo','org','disc','estrato','c0'].filter(k=>!(k in col)).map(k=>({nombre:'Nombre',tipo:'Tipo de identificación',numId:'Número de identificación',fecha:'Fecha de expedición',edad:'Edad',sexo:'Sexo',org:'Organización social',disc:'Discapacidad',estrato:'Estrato',c0:'Códigos'}[k]))};
+  impValidar();
+}
+function impValidar(){
+  const {rows,hi,col,fresh}=impRaw;const c=C[sel];
+  const g=(r,k)=>k in col?r[col[k]]:'';
+  const auto=$('impAuto')?$('impAuto').checked:true;
+  impItems=[];const vistos={};
+  for(let i=hi+1;i<rows.length;i++){
+    const r=rows[i];if(!r.some(x=>String(x).trim()!==''))continue;
+    const fila=i+1,err=[];
+    const sf=parseInt(impCel(g(r,'serial')),10);
+    const usarAuto=auto||!(sf>0);
+    let serial=usarAuto?0:sf,existe=null;
+    if(!usarAuto){
+      if(tieneRango(c)&&(serial<+c.desde||serial>+c.hasta))err.push(`Serial fuera del rango (${c.desde}–${c.hasta})`);
+      if(vistos[serial])err.push(`Serial repetido en el Excel (fila ${vistos[serial]})`);else vistos[serial]=fila;
+      const ex=fresh[serial];if(ex){if(String(ex.contrato)!==String(c.contrato))err.push(`Serial ya digitado por el contrato ${ex.contrato}`);else existe=ex}
+    }
+    if('contrato' in col){const ct=impCel(g(r,'contrato'));if(ct&&ct!==String(c.contrato))err.push(`Contrato ${ct} no coincide con ${c.contrato}`)}
+    const adv=[];
+    /* campos incompletos NO bloquean la importación: quedan vacíos */
+    const op=(k,lista,nom)=>{const raw=impCel(g(r,k));if(!raw){adv.push('Falta '+nom);return ''}const o=impOpt(lista,raw);if(!o)adv.push(nom+' no válido ("'+raw+'"), queda vacío');return o};
+    const nombre=impCel(g(r,'nombre')).toUpperCase();if(!nombre)adv.push('Falta nombre');
+    const tipo=op('tipo',OPC.tipo,'tipo de identificación');
+    const numId=impCel(g(r,'numId')).toUpperCase();if(!numId)adv.push('Falta número de identificación');
+    const fecha=impFecha(g(r,'fecha'));if(!fecha)adv.push(impCel(g(r,'fecha'))?'Fecha de expedición no válida, queda vacía':'Falta fecha de expedición');
+    let edad=parseInt(impCel(g(r,'edad')),10);if(!(edad>=1&&edad<=120)){adv.push(impCel(g(r,'edad'))?'Edad no válida, queda vacía':'Falta edad');edad=''}
+    const sexo=op('sexo',OPC.sexo,'sexo');
+    const org=op('org',OPC.org,'organización social');
+    const disc=op('disc',OPC.disc,'discapacidad');
+    let dtipo='';
+    if(disc==='SI'){dtipo=op('dtipo',OPC.dtipo,'tipo de discapacidad')}
+    const estrato=op('estrato',OPC.estrato,'estrato');
+    const cods=[0,1,2,3,4].map(j=>impCel(g(r,'c'+j)).replace(/\.0+$/,''));
+    if(!cods.some(Boolean))adv.push('Sin códigos');
+    const malos=cods.filter(x=>x&&!PMAP[x]);if(malos.length)err.push('Código(s) fuera del cuadernillo: '+malos.join(', '));
+    const rep=cods.filter((x,j)=>x&&cods.indexOf(x)!==j);if(rep.length)err.push('Código repetido: '+[...new Set(rep)].join(', '));
+    impItems.push({fila,serial,usarAuto,err,adv,existe,rec:null,draft:{contrato:c.contrato,contratista:c.nombre,area:c.area||'',localidad:'ENGATIVÁ',nombre,tipoId:tipo,numId,fechaExp:fecha,edad:edad===''?'':String(edad),sexo:sexo.toUpperCase(),org:org.toUpperCase(),disc,discTipo:dtipo.toUpperCase(),estrato,codigos:cods.map(x=>x.toUpperCase())}});
+  }
+  /* seriales libres del rango: los que faltan por asignar */
+  const usados=new Set(Object.keys(fresh).map(Number));
+  impItems.forEach(x=>{if(!x.usarAuto&&x.serial>0)usados.add(x.serial)});
+  const libres=[];if(tieneRango(c))for(let k=+c.desde;k<=+c.hasta;k++)if(!usados.has(k))libres.push(k);
+  let li=0;
+  impItems.forEach(x=>{
+    if(x.usarAuto&&!x.err.length){
+      if(!tieneRango(c))x.err.push('El contratista no tiene rango de seriales asignado');
+      else if(li>=libres.length)x.err.push('No quedan seriales libres en el rango');
+      else{x.serial=libres[li++];x.auto=true}
+    }
+    if(!x.err.length)x.rec=Object.assign({serial:x.serial},x.draft);
+  });
+  impNAuto=impItems.filter(x=>x.auto).length;
+  renderImp();
+}
+function renderImp(){
+  const over=$('impOver')?$('impOver').checked:false;
+  const ok=impItems.filter(x=>x.rec&&!x.existe),dup=impItems.filter(x=>x.rec&&x.existe),bad=impItems.filter(x=>!x.rec);
+  const aImp=ok.length+(over?dup.length:0);
+  const inc=impItems.filter(x=>x.rec&&x.adv.length);
+  const autoOn=$('impAuto')?$('impAuto').checked:true;
+  let h=(impRaw&&impRaw.sinCol&&impRaw.sinCol.length?`<div class="mut" style="margin-bottom:6px">Columnas no encontradas (quedarán vacías): ${impRaw.sinCol.map(esc).join(' · ')}</div>`:'')+(impRaw&&impRaw.sinRec&&impRaw.sinRec.length?`<div class="mut" style="margin-bottom:6px">Columnas no reconocidas (se ignoran): ${impRaw.sinRec.map(esc).join(' · ')}</div>`:'')+`<label style="display:flex;gap:8px;align-items:flex-start;margin:0 0 8px"><input type="checkbox" id="impAuto" ${autoOn?'checked':''} style="width:auto;margin-top:3px"> <span>Asignar automáticamente los seriales que faltan del rango (ignora la columna Serial del Excel; las filas sin serial siempre se asignan solas)</span></label><div class="imp-sum"><b>${impItems.length}</b> filas leídas · <b>${impNAuto}</b> con serial asignado automáticamente · <b>${ok.length}</b> nuevas válidas · <b>${dup.length}</b> con serial ya digitado de este contratista · <b>${inc.length}</b> con información incompleta (se importan igual) · <b>${bad.length}</b> con errores</div>`;
+  if(dup.length)h+=`<label style="display:flex;gap:8px;align-items:center;margin:8px 0"><input type="checkbox" id="impOver" ${over?'checked':''} style="width:auto"> Sobrescribir los ${dup.length} seriales ya digitados (${dup.slice(0,8).map(x=>x.serial).join(', ')}${dup.length>8?'…':''})</label>`;
+  if(bad.length)h+=`<div class="scroll imp-err" style="max-height:260px"><table><thead><tr><th>Fila</th><th>Serial</th><th>Errores</th></tr></thead><tbody>${bad.slice(0,200).map(x=>`<tr><td>${x.fila}</td><td>${esc(x.usarAuto?'(auto)':x.serial)}</td><td>${x.err.map(esc).join('; ')}</td></tr>`).join('')}</tbody></table></div>${bad.length>200?'<div class="mut">Se muestran los primeros 200 errores.</div>':''}<div class="mut" style="margin:6px 0">Las filas con error no se importan. Corrígelas en el Excel y vuelve a cargarlo.</div>`;
+  if(inc.length)h+=`<details style="margin:8px 0"><summary style="cursor:pointer">Ver filas con información incompleta (${inc.length})</summary><div class="scroll imp-err" style="max-height:220px"><table><thead><tr><th>Fila</th><th>Serial</th><th>Observaciones</th></tr></thead><tbody>${inc.slice(0,200).map(x=>`<tr><td>${x.fila}</td><td>${esc(x.usarAuto?'(auto)':x.serial)}</td><td>${x.adv.map(esc).join('; ')}</td></tr>`).join('')}</tbody></table></div></details>`;
+  h+=`<div style="margin-top:8px"><button id="btnImp" ${aImp?'':'disabled'}>Importar ${aImp} formulario${aImp===1?'':'s'}</button></div><div id="impMsg"></div>`;
+  $('impRes').innerHTML=h;
+  if($('impOver'))$('impOver').onchange=renderImp;
+  $('impAuto').onchange=impValidar;
+  $('btnImp').onclick=importar;
+}
+async function importar(){
+  const over=$('impOver')?$('impOver').checked:false;
+  const lista=impItems.filter(x=>x.rec&&(!x.existe||over));
+  if(!lista.length)return;
+  const c=C[sel];
+  if(!(await pedirClave(`Importar ${lista.length} formularios al contrato ${c.contrato}`)))return;
+  const btn=$('btnImp');btn.disabled=true;btn.textContent='Importando…';
+  try{
+    const fresh=norm(await fb('proyecta_registros'));
+    let mx=Math.max(0,...Object.values(fresh).filter(r=>String(r.contrato)===String(c.contrato)).map(r=>r.n||0));
+    const now=new Date().toISOString(),upd=[];
+    lista.forEach(x=>{
+      const ex=fresh[x.serial];
+      if(ex&&String(ex.contrato)!==String(c.contrato))return;
+      const rec={...x.rec,n:(ex&&ex.n)?ex.n:++mx,ts:(ex&&ex.ts)?ex.ts:now,tsMod:now};
+      for(const k in rec){if(typeof rec[k]==='string'&&!['ts','tsMod','fechaExp'].includes(k))rec[k]=rec[k].toUpperCase()}
+      rec.codigos=rec.codigos.map(v=>String(v).toUpperCase());
+      upd.push(rec);
+    });
+    for(let i=0;i<upd.length;i+=100){
+      const u={};upd.slice(i,i+100).forEach(r=>{u['proyecta_registros/'+r.serial]=r;u['proyecta_idx/'+c.contrato+'/'+r.serial]=r});
+      await fb('','PATCH',u);
+    }
+    const chk=norm(await fb('proyecta_registros'));
+    const fallan=upd.filter(r=>!chk[r.serial]);
+    await cargarRegs();pintarAdmin();seleccionar(sel);
+    $('impFile').value='';impItems=[];
+    $('impRes').innerHTML='';
+    if(fallan.length)msg('impRes',`Se importaron ${upd.length-fallan.length} de ${upd.length}. No se confirmaron en Firebase los seriales: ${fallan.map(r=>r.serial).join(', ')}.`);
+    else msg('impRes',`Se importaron ${upd.length} formularios al contrato ${c.contrato}.`,'ok');
+  }catch(e){msg('impMsg','Error al importar: '+e.message);btn.disabled=false}
+}
+$('btnPlantilla').onclick=descargarPlantilla;
+$('impFile').onchange=e=>{const f=e.target.files[0];if(f)impLeer(f)};
 </script>
 </body>
 </html>
