@@ -74,10 +74,13 @@ td{text-transform:uppercase}
 
 <!-- INGRESO CONTRATISTA -->
 <section id="vLogin" class="card">
-  <div id="avance" class="avance"><div class="row" style="align-items:center"><h2 style="margin:0">Avance de formularios por área</h2><button class="sec" id="btnAv" style="margin-left:auto;padding:6px 10px;font-size:13px">Actualizar</button></div><div id="avBody" class="mut" style="margin-top:10px">Cargando avance…</div></div>
+  <div id="avance" class="avance"><div class="row" style="align-items:center"><h2 style="margin:0">Avance de votos por área</h2><button class="sec" id="btnAv" style="margin-left:auto;padding:6px 10px;font-size:13px">Actualizar</button></div><div id="avBody" class="mut" style="margin-top:10px">Cargando avance…</div></div>
   <div class="aviso">Los <b>Presupuestos Participativos</b> son un mecanismo de democracia directa donde la ciudadanía decide de forma transparente cómo invertir una parte del presupuesto público de su municipio o localidad. En este proceso, los propios vecinos proponen, debaten y votan proyectos prioritarios —como obras comunitarias, programas culturales o mejoras urbanas— para dar respuesta a las necesidades reales de su comunidad.</div>
   <h2>Ingresa tu número de contrato</h2>
   <input type="number" id="inContrato" placeholder="Ej: 1193" inputmode="numeric">
+  <label class="l" style="margin-top:10px">Últimos 4 dígitos de tu cédula</label>
+  <input type="password" id="inCed" inputmode="numeric" maxlength="4" placeholder="••••" autocomplete="off">
+  <div class="mut" style="margin-top:4px">Pregunta de seguridad. Si es tu primer ingreso, esos 4 dígitos quedarán registrados como tu clave.</div>
   <div style="margin-top:10px"><button id="btnIngresar">Ingresar</button></div>
   <div id="loginMsg"></div>
 </section>
@@ -130,7 +133,7 @@ td{text-transform:uppercase}
   </div>
 
   <div class="card">
-    <h2>Mis formularios digitados (<span id="nDig">0</span>)</h2>
+    <h2>Mis votos digitados (<span id="nDig">0</span>)</h2>
     <div class="scroll"><table class="wide"><thead><tr><th>N°</th><th>Serial</th><th>Localidad</th><th>Nombre</th><th>Tipo ID</th><th>Número ID</th><th>Fecha Exp</th><th>Edad</th><th>Sexo</th><th>Org. Social</th><th>¿Discapacidad?</th><th>Tipo Discapacidad</th><th>Estrato</th><th>Código1</th><th>Código2</th><th>Código3</th><th>Código4</th><th>Código5</th><th></th></tr></thead><tbody id="misReg"></tbody></table></div>
   </div>
 </section>
@@ -160,7 +163,7 @@ td{text-transform:uppercase}
         <div class="mut" id="sHint" style="margin-top:6px"></div>
         <div style="margin-top:12px" class="row"><button id="btnAsig">Guardar asignación</button><button class="sec" id="btnQuitar">Quitar rango</button></div>
         <div id="sMsg"></div>
-        <div class="row" style="align-items:center;margin-top:14px"><h2 style="margin:0">Formularios registrados (<span id="sFCnt">0</span>)</h2><div style="flex:0 0 auto"><button class="sec" id="btnFRef">Actualizar</button></div></div>
+        <div class="row" style="align-items:center;margin-top:14px"><h2 style="margin:0">Votos registrados (<span id="sFCnt">0</span>)</h2><div style="flex:0 0 auto"><button class="sec" id="btnFRef">Actualizar</button></div></div>
         <div class="scroll" style="margin-top:8px"><table class="wide"><thead><tr><th>N°</th><th>Serial</th><th>Localidad</th><th>Nombre</th><th>Tipo ID</th><th>Número ID</th><th>Fecha Exp</th><th>Edad</th><th>Sexo</th><th>Org. Social</th><th>¿Discapacidad?</th><th>Tipo Discapacidad</th><th>Estrato</th><th>Código1</th><th>Código2</th><th>Código3</th><th>Código4</th><th>Código5</th><th></th></tr></thead><tbody id="sFBody"></tbody></table></div>
         <div id="impBox" style="margin-top:16px;border-top:1px solid var(--bd);padding-top:14px">
           <h2 style="margin:0 0 6px">Importar votos desde Excel</h2>
@@ -174,7 +177,8 @@ td{text-transform:uppercase}
     <div class="card">
       <h2>Contratistas (<span id="nCont">0</span>)</h2>
       <div class="row" style="margin-bottom:10px"><input type="text" id="fNum" placeholder="Filtrar por N° de contrato" inputmode="numeric" autocomplete="off"><input type="text" id="fNom" placeholder="Filtrar por nombre" autocomplete="off"><select id="fArea"></select></div>
-      <div class="scroll"><table><thead><tr><th>Contrato</th><th>Nombre</th><th>Área</th><th>Seriales</th><th>Digitados</th><th></th></tr></thead><tbody id="tbC"></tbody></table></div>
+      <div style="margin-bottom:10px"><div class="mut">Cargar cédulas desde Excel (columnas: Contrato y Cédula). Solo se usan los últimos 4 dígitos y se guardan cifrados.</div><input type="file" id="cedFile" accept=".xlsx,.xls,.csv" style="margin-top:6px"><div id="cedRes" style="margin-top:6px"></div></div>
+      <div class="scroll"><table><thead><tr><th>Contrato</th><th>Nombre</th><th>Área</th><th>Seriales</th><th>Digitados</th><th>Clave</th><th></th></tr></thead><tbody id="tbC"></tbody></table></div>
     </div>
     <div class="card">
       <h2 id="adTitulo">Agregar contratista</h2>
@@ -182,6 +186,7 @@ td{text-transform:uppercase}
         <div><label class="l">No. de contrato</label><input type="number" id="aNum"></div>
         <div style="flex:2"><label class="l">Nombre</label><input type="text" id="aNom"></div>
         <div><label class="l">Área</label><input type="text" id="aArea" list="areasList"><datalist id="areasList"></datalist></div>
+        <div><label class="l">Cédula (opcional)</label><input type="password" id="aCed" inputmode="numeric" autocomplete="off" placeholder="solo se guardan 4 dígitos"></div>
       </div>
       <div style="margin-top:12px" class="row"><button id="btnAddC">Guardar contratista</button><button class="sec" id="btnCancelC">Cancelar edición</button></div>
       <div id="aMsg"></div>
@@ -191,11 +196,11 @@ td{text-transform:uppercase}
   <div id="tR" class="hide">
     <div class="card">
       <h2>Registros digitados</h2>
-      <div class="row" style="align-items:flex-end"><div><label class="l">Área</label><select id="dArea"></select></div><div><button id="btnXlsx" style="width:100%">Descargar Excel</button></div></div>
+      <div class="row" style="align-items:flex-end"><div><label class="l">Área</label><select id="dArea"></select></div><div><button id="btnXlsx" style="width:100%">Descargar Excel</button></div><div><button class="sec" id="btnRep" style="width:100%">Votantes repetidos</button></div></div><div id="repBox" style="margin-top:10px"></div>
       <div id="rMsg" class="mut" style="margin-top:10px"></div>
     </div>
     <div class="card">
-      <h2>Formularios digitados</h2>
+      <h2>Votos digitados</h2>
       <input type="text" id="rFiltro" placeholder="Filtrar por contrato, nombre o serial" autocomplete="off">
       <div class="scroll" style="margin-top:10px"><table class="wide"><thead id="rHead"></thead><tbody id="rBody"></tbody></table></div>
       <div class="mut" id="rCnt" style="margin-top:6px"></div>
@@ -215,6 +220,28 @@ const SEED=[[886,"LADY LORENA MARTINEZ","IVC"],[887,"DEYSI ALEXANDRA MONTENEGRO 
 
 const $=id=>document.getElementById(id);
 const OPC={tipo:['C.C','C.E','T.I','P.E.P'],sexo:['Masculino','Femenino','Trans','Otro','No binario','No decirlo'],org:['JAL','JAC','O. Sociales','No responde','CPL','M. Comunitarios','Otro','Ninguna'],disc:['SI','NO'],dtipo:['Auditiva','Sordoceguera','Física','Visual','Intelectual','Múltiple','Psicosocial'],estrato:['1','2','3','4','5','6']};
+/* ---------- votantes únicos: una identificación no se puede repetir (ni dentro ni entre contratos) ---------- */
+const vid=x=>String(x==null?'':x).toUpperCase().replace(/[^A-Z0-9]/g,'').replace(/^0+(?=[A-Z0-9])/,'');
+let VOT={},VOT_ts=0;
+function mapaVot(regs){const m={};Object.values(norm(regs)).forEach(r=>{if(r&&typeof r==='object'){const k=vid(r.numId);if(k)m[k]={serial:r.serial,contrato:String(r.contrato)}}});return m}
+function construirVot(regs){VOT=mapaVot(regs);VOT_ts=Date.now()}
+async function votanteDuplicado(numId,serial,contrato){
+  const k=vid(numId);if(!k)return null;
+  const propio=o=>o&&String(o.serial)===String(serial)&&String(o.contrato)===String(contrato);
+  const vigente=async o=>{ /* confirma que el registro aún existe y conserva esa identificación */
+    if(!o||propio(o))return null;
+    const r=await fb('proyecta_registros/'+o.serial);
+    return r&&vid(r.numId)===k&&String(r.contrato)===String(o.contrato)?{serial:o.serial,contrato:o.contrato}:null};
+  if(Date.now()-VOT_ts>30000){ /* lista desactualizada: se relee de Firebase; si no se puede verificar, no se guarda */
+    try{construirVot(await fb('proyecta_registros'))}catch(e){throw new Error('No se pudo verificar si el votante ya fue registrado. Revisa tu conexión e inténtalo de nuevo.')}}
+  let d=await vigente(VOT[k]);if(d)return d;
+  let ix=null;try{ix=await fb('proyecta_votantes/'+k)}catch(e){}
+  return await vigente(ix);
+}
+/* ---------- clave del contratista: últimos 4 dígitos de la cédula (se guarda solo un hash) ---------- */
+const ult4=x=>{const d=String(x==null?'':x).replace(/\D/g,'');return d.length>=4?d.slice(-4):''};
+async function hash4(c,d){const t='pl|'+c+'|'+d;try{const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(t));return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')}catch(e){return 'x'+btoa(t)}}
+let INT={};
 const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function msg(el,t,k){$(el).innerHTML=t?`<div class="msg ${k||'err'}">${esc(t)}</div>`:''}
 async function fb(path,method,body){
@@ -230,7 +257,7 @@ let mySer={};        // {serial:nombre}
 let allIdx={};       // índice global para el panel admin
 let allReg={};       // todos los registros (por llave de Firebase)
 async function cargarRegs(){
-  allReg=norm(await fb('proyecta_registros'));allIdx={};
+  allReg=norm(await fb('proyecta_registros'));allIdx={};construirVot(allReg);
   Object.entries(allReg).forEach(([k,r])=>{(allIdx[r.contrato]=allIdx[r.contrato]||{})[k]=1});
 }
 let editingSerial=null, editingContrato=null;
@@ -256,6 +283,7 @@ async function eliminarRegistro(serial,contrato){
   if(!confirm(`¿Eliminar el formulario con serial ${serial}?`))return false;
   if(!(await pedirClave('Eliminar formulario serial '+serial)))return false;
   const u={};u['proyecta_registros/'+serial]=null;u['proyecta_idx/'+contrato+'/'+serial]=null;
+  try{const rr=await fb('proyecta_registros/'+serial);const kk=rr&&vid(rr.numId);if(kk){u['proyecta_votantes/'+kk]=null;if(VOT[kk]&&String(VOT[kk].serial)===String(serial))delete VOT[kk]}}catch(e){}
   await fb('','PATCH',u);
   const [a,b]=await Promise.all([fb('proyecta_registros/'+serial),fb('proyecta_idx/'+contrato+'/'+serial)]);
   if(a!==null||b!==null)throw new Error('Firebase no eliminó el registro '+serial+' (revisa las reglas de la base de datos).');
@@ -367,13 +395,13 @@ async function cargarAvance(){
     const T=keys.reduce((t,k)=>({asig:t.asig+A[k].asig,dig:t.dig+A[k].dig}),{asig:0,dig:0});
     const conReg=new Set(RR.filter(r=>r&&typeof r==='object').map(r=>String(r.contrato))).size,totC=Object.keys(CC).length;
     const kp=(v,l)=>`<div class="kp"><b>${v}</b><span>${l}</span></div>`;
-    const kpis=`<div class="kps">${kp(T.dig,'Formularios digitados')}${kp(Math.max(0,T.asig-T.dig),'Formularios faltantes')}${kp(T.asig,'Formularios asignados')}${kp(conReg+' de '+totC,'Contratistas con registros')}</div>`;
+    const kpis=`<div class="kps">${kp(T.dig,'Votos digitados')}${kp(Math.max(0,T.asig-T.dig),'Votos faltantes')}${kp(T.asig,'Votos asignados')}${kp(conReg+' de '+totC,'Contratistas con registros')}</div>`;
     const cnt={};RR.forEach(r=>{if(r&&typeof r==='object'){const k=String(r.contrato);cnt[k]=(cnt[k]||0)+1}});
     const lista=Object.keys(cnt).map(k=>{const c=CC[k]||{};const a=tieneRango(c)?Math.max(0,+c.hasta-+c.desde+1):0;return {nom:String(c.nombre||('CONTRATO '+k)).toUpperCase(),area:String(c.area||'').toUpperCase(),dig:cnt[k],asig:a,p:a?Math.min(100,Math.round(cnt[k]/a*100)):0}})
       .sort((x,y)=>y.p-x.p||y.dig-x.dig||x.nom.localeCompare(y.nom));
-    const lis=lista.length?`<details open style="margin-top:10px"><summary style="cursor:pointer;font-weight:700;margin-bottom:6px">Contratistas que han diligenciado formularios (${lista.length})</summary><div class="scroll" style="max-height:340px;padding:4px 10px">${lista.map(x=>`<div class="avr"><div class="t"><span><b style="font-size:14px">${esc(x.nom)}</b>${x.area?` <span class="mut">· ${esc(x.area)}</span>`:''}</span><span>${x.dig}${x.asig?' de '+x.asig:''} formularios${x.asig?` · <b>${x.p}%</b>`:''}</span></div><div class="tr"><i style="width:${x.p}%"></i></div></div>`).join('')}</div></details>`:'';
+    const lis=lista.length?`<details open style="margin-top:10px"><summary style="cursor:pointer;font-weight:700;margin-bottom:6px">Contratistas que han diligenciado votos (${lista.length})</summary><div class="scroll" style="max-height:340px;padding:4px 10px">${lista.map(x=>`<div class="avr"><div class="t"><span><b style="font-size:14px">${esc(x.nom)}</b>${x.area?` <span class="mut">· ${esc(x.area)}</span>`:''}</span><span>${x.dig}${x.asig?' de '+x.asig:''} votos${x.asig?` · <b>${x.p}%</b>`:''}</span></div><div class="tr"><i style="width:${x.p}%"></i></div></div>`).join('')}</div></details>`:'';
     box.className='';
-    box.innerHTML=keys.length?kpis+`<div class="dns">${dona('TODAS',T,true)}${keys.map(k=>dona(k,A[k])).join('')}</div><div class="mut" style="text-align:center;font-size:12px">Formularios digitados de los asignados</div>${lis}`:'<span class="mut">Aún no hay formularios digitados.</span>';
+    box.innerHTML=keys.length?kpis+`<div class="dns">${dona('TODAS',T,true)}${keys.map(k=>dona(k,A[k])).join('')}</div><div class="mut" style="text-align:center;font-size:12px">Votos digitados de los asignados</div>${lis}`:'<span class="mut">Aún no hay votos digitados.</span>';
   }catch(e){box.className='mut';box.textContent='No se pudo cargar el avance: '+e.message}
 }
 /* ---------- ingreso contratista ---------- */
@@ -383,7 +411,26 @@ async function ingresar(){
   try{C=await fb('proyecta_contratistas')||{}}catch(e){return msg('loginMsg','Error de conexión: '+e.message)}
   const c=C[n];
   if(!c)return msg('loginMsg','El contrato '+n+' no está en la lista. Contacta al administrador.');
+  {
+    const ced=ult4($('inCed').value);
+    if(!ced)return msg('loginMsg','Escribe los últimos 4 dígitos de tu cédula.');
+    let it=null;try{it=await fb('proyecta_intentos/'+n)}catch(e){}
+    const bloq=it&&it.n>=5&&Date.now()-(+it.ts||0)<10*60*1000;
+    if(bloq)return msg('loginMsg','Demasiados intentos fallidos. Espera unos minutos o comunícate con el administrador.');
+    const hh=await hash4(n,ced);
+    if(c.clave){
+      if(hh!==c.clave){
+        const prev=it&&!(it.n>=5)?+it.n||0:0;
+        try{await fb('proyecta_intentos/'+n,'PUT',{n:prev+1,ts:Date.now()})}catch(e){}
+        return msg('loginMsg','Datos incorrectos. Verifica tu número de contrato y los últimos 4 dígitos de tu cédula.');
+      }
+      if(it){try{await fb('proyecta_intentos/'+n,'DELETE')}catch(e){}}
+    }else{
+      try{await fb('proyecta_contratistas/'+n,'PATCH',{clave:hh});c.clave=hh}catch(e){return msg('loginMsg','No se pudo registrar tu clave: '+e.message)}
+    }
+  }
   me=c;try{localStorage.setItem('pl_last',n)}catch(e){}
+  try{construirVot(await fb('proyecta_registros'))}catch(e){}
   try{mySer=norm(await fb('proyecta_idx/'+n))}catch(e){return msg('loginMsg','No se pudieron leer tus registros: '+e.message)}
   await Promise.all(Object.keys(mySer).filter(k=>typeof mySer[k]!=='object').map(async k=>{const r=await fb('proyecta_registros/'+k);if(r)mySer[k]=r;else delete mySer[k]}));
   {const rs=Object.values(mySer).sort((a,b)=>String(a.ts).localeCompare(String(b.ts)));let mx=Math.max(0,...rs.map(r=>r.n||0));const u={};
@@ -398,11 +445,11 @@ function tieneRango(c){return !!c&&c.desde!==''&&c.hasta!==''&&c.desde!=null&&c.
 function pintarRango(){
   const ok=tieneRango(me);
   $('cRango').innerHTML=(me.area?`Área: <b>${esc(me.area)}</b>`:'Área: <span class="mut">sin asignar</span>')+'<br>'+
-    (ok?`Te corresponde tabular del serial <b>${+me.desde}</b> al <b>${+me.hasta}</b> (${+me.hasta-+me.desde+1} formularios)`:'<span class="mut">Aún no tienes seriales asignados; puedes digitar cualquier serial.</span>');
+    (ok?`Te corresponde tabular del serial <b>${+me.desde}</b> al <b>${+me.hasta}</b> (${+me.hasta-+me.desde+1} votos)`:'<span class="mut">Aún no tienes seriales asignados; puedes digitar cualquier serial.</span>');
   progreso();
 }
 function progreso(){
-  if(!tieneRango(me)){$('cBar').style.width='0';$('cProg').textContent=Object.keys(mySer).length+' formularios digitados';return}
+  if(!tieneRango(me)){$('cBar').style.width='0';$('cProg').textContent=Object.keys(mySer).length+' votos digitados';return}
   const d=+me.desde,h=+me.hasta,tot=h-d+1;
   const hechos=Object.keys(mySer).filter(k=>+k>=d&&+k<=h).length;
   $('cBar').style.width=(100*hechos/tot)+'%';
@@ -476,10 +523,16 @@ async function guardar(){
     };
     for(const k in rec){if(typeof rec[k]==='string'&&!['ts','tsMod','fechaExp'].includes(k))rec[k]=rec[k].toUpperCase()}
     rec.codigos=rec.codigos.map(c=>c.toUpperCase());
+    const kid=vid(rec.numId);
+    const dup=await votanteDuplicado(rec.numId,serial,me.contrato);
+    if(dup){$('fNumId').classList.add('falta');if($('fNumId').scrollIntoView)$('fNumId').scrollIntoView({behavior:'smooth',block:'center'});msg('fMsg',`El votante con identificación ${rec.numId} ya fue registrado. No se permite repetir votantes.`);btn.disabled=false;return}
     const upd={};
     upd['proyecta_registros/'+serial]=rec;
     upd['proyecta_idx/'+me.contrato+'/'+serial]=rec;
+    if(kid)upd['proyecta_votantes/'+kid]={serial,contrato:me.contrato};
+    const old=ex&&vid(ex.numId);if(old&&old!==kid){upd['proyecta_votantes/'+old]=null;if(VOT[old]&&String(VOT[old].serial)===String(serial))delete VOT[old]}
     await fb('','PATCH',upd);
+    if(kid)VOT[kid]={serial,contrato:String(me.contrato)};
     mySer[serial]=rec;
     pintarMis();progreso();
     const sig=siguienteLibre(serial+1);
@@ -506,7 +559,7 @@ function pintarMis(){
   $('nDig').textContent=rs.length;
   $('misReg').innerHTML=rs.map(([k,r])=>{const c=r.codigos||[];
     const cells=[r.n,r.serial==null?k:r.serial,r.localidad,r.nombre,r.tipoId,r.numId,r.fechaExp,r.edad,r.sexo,r.org,r.disc,r.discTipo,r.estrato,c[0],c[1],c[2],c[3],c[4]];
-    return '<tr>'+cells.map(v=>`<td>${esc(v)}</td>`).join('')+`<td style="white-space:nowrap"><button class="sec" data-ed="${esc(k)}">Editar</button> <button class="red" data-del="${esc(k)}">Eliminar</button></td></tr>`}).join('')||'<tr><td colspan="19" class="mut">Aún no has digitado formularios.</td></tr>';
+    return '<tr>'+cells.map(v=>`<td>${esc(v)}</td>`).join('')+`<td style="white-space:nowrap"><button class="sec" data-ed="${esc(k)}">Editar</button> <button class="red" data-del="${esc(k)}">Eliminar</button></td></tr>`}).join('')||'<tr><td colspan="19" class="mut">Aún no has digitado votos.</td></tr>';
   const sc=document.querySelector('#vCaptura .scroll');sc.scrollTop=sc.scrollHeight;
 }
 $('btnAv').addEventListener('click',cargarAvance);
@@ -525,27 +578,28 @@ $('misReg').addEventListener('click',async e=>{
 /* ---------- administración ---------- */
 function salirAdmin(){
   me=null;['vCaptura','vPin','vAdmin'].forEach(i=>$(i).classList.add('hide'));
-  $('vLogin').classList.remove('hide');$('btnSalir').classList.add('hide');$('inContrato').value='';cargarAvance();
+  $('vLogin').classList.remove('hide');$('btnSalir').classList.add('hide');$('inContrato').value='';$('inCed').value='';cargarAvance();
 }
 async function cargarAdmin(){
   C=await fb('proyecta_contratistas')||{};
+  try{INT=norm(await fb('proyecta_intentos'))}catch(e){INT={}}
   await cargarRegs();
   pintarAdmin();
 }
 function pintarAdmin(){
   const areas=[...new Set(Object.values(C).map(c=>c.area).filter(Boolean))].sort();
   const sel=$('fArea'),cur=sel.value||'';
-  sel.innerHTML='<option value="">Todas las áreas</option>'+areas.map(a=>`<option>${esc(a)}</option>`).join('')+'<option value="__none">Sin área</option><option value="__con">Con registros digitados</option>';
+  sel.innerHTML='<option value="">Todas las áreas</option>'+areas.map(a=>`<option>${esc(a)}</option>`).join('')+'<option value="__none">Sin área</option><option value="__con">Con registros digitados</option><option value="__sinclave">Sin clave registrada</option>';
   sel.value=cur;if(sel.value!==cur)sel.value='';
   {const dv=$('dArea').value;$('dArea').innerHTML='<option value="">Todas las áreas</option>'+areas.map(a=>`<option value="${esc(a)}">${esc(a)}</option>`).join('');$('dArea').value=dv;if($('dArea').value!==dv)$('dArea').value=''}
   $('areasList').innerHTML=areas.map(a=>`<option value="${esc(a)}">`).join('');
   const f=sel.value,fn=$('fNum').value.trim(),fm=$('fNom').value.trim().toUpperCase();
-  const ks=Object.keys(C).map(Number).sort((a,b)=>a-b).filter(k=>(!fn||String(k).includes(fn))&&(!fm||String(C[k].nombre||'').toUpperCase().includes(fm))).filter(k=>!f||(f==='__none'?!C[k].area:f==='__con'?Object.keys(allIdx[k]||{}).length>0:C[k].area===f));
+  const ks=Object.keys(C).map(Number).sort((a,b)=>a-b).filter(k=>(!fn||String(k).includes(fn))&&(!fm||String(C[k].nombre||'').toUpperCase().includes(fm))).filter(k=>!f||(f==='__none'?!C[k].area:f==='__con'?Object.keys(allIdx[k]||{}).length>0:f==='__sinclave'?!C[k].clave:C[k].area===f));
   $('nCont').textContent=ks.length;
   $('tbC').innerHTML=ks.map(k=>{
     const c=C[k];
     const hechos=Object.keys(allIdx[k]||{}).length;
-    return `<tr data-k="${k}" style="cursor:pointer" title="Ver formularios"><td>${esc(c.contrato)}</td><td>${esc(c.nombre)}</td><td>${c.area?esc(c.area):'<span class="mut">sin asignar</span>'}</td><td>${tieneRango(c)?esc(c.desde)+' – '+esc(c.hasta):'<span class="mut">sin asignar</span>'}</td><td>${hechos}</td><td style="white-space:nowrap"><button data-a="${k}">Asignar</button> <button class="sec" data-e="${k}">Editar</button> <button class="red" data-d="${k}">Eliminar</button></td></tr>`;
+    return `<tr data-k="${k}" style="cursor:pointer" title="Ver votos"><td>${esc(c.contrato)}</td><td>${esc(c.nombre)}</td><td>${c.area?esc(c.area):'<span class="mut">sin asignar</span>'}</td><td>${tieneRango(c)?esc(c.desde)+' – '+esc(c.hasta):'<span class="mut">sin asignar</span>'}</td><td>${hechos}</td><td>${c.clave?'✓':'<span class="mut">sin clave</span>'}${(INT[k]&&INT[k].n)?` <span style="color:var(--red)">⚠ ${+INT[k].n} intento${+INT[k].n===1?'':'s'}</span> <button class="sec" data-u="${k}" style="padding:3px 8px;font-size:12px">Desbloquear</button>`:''}${c.clave?` <button class="sec" data-r="${k}" style="padding:3px 8px;font-size:12px">Reiniciar clave</button>`:''}</td><td style="white-space:nowrap"><button data-a="${k}">Asignar</button> <button class="sec" data-e="${k}">Editar</button> <button class="red" data-d="${k}">Eliminar</button></td></tr>`;
   }).join('');
 }
 let editKey=null;
@@ -559,18 +613,26 @@ async function guardarContratista(){
     const upd={};
     if(editKey&&editKey!==String(n)){upd['proyecta_contratistas/'+editKey]=null}
     const prev=C[editKey||n]||{};
-    upd['proyecta_contratistas/'+n]={contrato:n,nombre:nm,area,desde:prev.desde==null?'':prev.desde,hasta:prev.hasta==null?'':prev.hasta};
+    const nuevo={contrato:n,nombre:nm,area,desde:prev.desde==null?'':prev.desde,hasta:prev.hasta==null?'':prev.hasta};
+    const cd=ult4($('aCed').value);
+    if(cd)nuevo.clave=await hash4(n,cd);
+    else if(prev.clave&&(!editKey||editKey===String(n)))nuevo.clave=prev.clave; /* al cambiar el N° de contrato la clave se reinicia */
+    upd['proyecta_contratistas/'+n]=nuevo;
     await fb('','PATCH',upd);
     cancelarEdicion();msg('aMsg','Contratista guardado.','ok');await cargarAdmin();
   }catch(e){msg('aMsg','Error: '+e.message)}
 }
-function cancelarEdicion(){editKey=null;['aNum','aNom','aArea'].forEach(i=>$(i).value='');$('adTitulo').textContent='Agregar contratista'}
+function cancelarEdicion(){editKey=null;['aNum','aNom','aArea','aCed'].forEach(i=>$(i).value='');$('adTitulo').textContent='Agregar contratista'}
 $('tbC').addEventListener('click',async e=>{
   const b=e.target.closest('button');
   if(!b){const tr=e.target.closest('tr[data-k]');if(tr){seleccionar(tr.dataset.k);window.scrollTo({top:0,behavior:'smooth'})}return}
+  if(b.dataset.u){try{await fb('proyecta_intentos/'+b.dataset.u,'DELETE');delete INT[b.dataset.u];pintarAdmin()}catch(err){msg('aMsg','Error: '+err.message)}return}
+  if(b.dataset.r){const k=b.dataset.r;if(!confirm(`¿Reiniciar la clave del contrato ${k}? El contratista registrará una nueva en su próximo ingreso.`))return;
+    if(!(await pedirClave('Reiniciar clave del contrato '+k)))return;
+    try{await fb('','PATCH',{['proyecta_contratistas/'+k+'/clave']:null,['proyecta_intentos/'+k]:null});delete INT[k];await cargarAdmin();msg('aMsg','Clave reiniciada.','ok')}catch(err){msg('aMsg','Error: '+err.message)}return}
   if(b.dataset.a){seleccionar(b.dataset.a);window.scrollTo({top:0,behavior:'smooth'})}
   if(b.dataset.e){const c=C[b.dataset.e];editKey=String(c.contrato);
-    $('aNum').value=c.contrato;$('aNom').value=c.nombre;$('aArea').value=c.area||'';
+    $('aNum').value=c.contrato;$('aNom').value=c.nombre;$('aArea').value=c.area||'';$('aCed').value='';
     $('adTitulo').textContent='Editar contratista '+c.contrato;$('adTitulo').scrollIntoView({behavior:'smooth'})}
   if(b.dataset.d){const k=b.dataset.d,c=C[k],hechos=Object.keys(allIdx[k]||{}).length;
     if(!confirm(`¿Eliminar a ${c.nombre} (contrato ${k})?`+(hechos?`\nTiene ${hechos} registros digitados; los registros NO se borran.`:'')))return;
@@ -596,7 +658,7 @@ function pintarFormsSel(k){
   $('sFCnt').textContent=rs.length;
   $('sFBody').innerHTML=rs.map(([key,r])=>{const c=r.codigos||[];
     const cells=[r.n,r.serial==null?key:r.serial,r.localidad,r.nombre,r.tipoId,r.numId,r.fechaExp,r.edad,r.sexo,r.org,r.disc,r.discTipo,r.estrato,c[0],c[1],c[2],c[3],c[4]];
-    return '<tr>'+cells.map(v=>`<td>${esc(v)}</td>`).join('')+`<td><button class="red" data-del="${esc(key)}">Eliminar</button></td></tr>`}).join('')||'<tr><td colspan="19" class="mut">Este contratista aún no ha registrado formularios.</td></tr>';
+    return '<tr>'+cells.map(v=>`<td>${esc(v)}</td>`).join('')+`<td><button class="red" data-del="${esc(key)}">Eliminar</button></td></tr>`}).join('')||'<tr><td colspan="19" class="mut">Este contratista aún no ha registrado votos.</td></tr>';
 }
 function seleccionar(k){
   const c=C[k];if(!c)return;
@@ -714,7 +776,14 @@ async function descargar(){
 
 /* ---------- eventos ---------- */
 $('btnIngresar').onclick=ingresar;
-$('inContrato').addEventListener('keydown',e=>{if(e.key==='Enter')ingresar()});
+$('inContrato').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();$('inCed').focus()}});
+$('inCed').addEventListener('keydown',e=>{if(e.key==='Enter')ingresar()});
+$('fNumId').addEventListener('change',async()=>{
+  const v=$('fNumId').value.trim();if(!v||!me)return;
+  try{const d=await votanteDuplicado(v,parseInt($('fSerial').value,10)||0,me.contrato);
+    if(d){$('fNumId').classList.add('falta');msg('fMsg',`El votante con identificación ${v} ya fue registrado. No se permite repetir votantes.`)}
+    else if($('fMsg').textContent.includes('ya fue registrado'))msg('fMsg','')}catch(e){}
+});
 $('btnGuardar').onclick=guardar;
 $('btnLimpiar').onclick=()=>limpiar();
 $('btnSalir').onclick=salirAdmin;
@@ -741,6 +810,16 @@ $('rBody').addEventListener('click',async e=>{
   }catch(err){$('rMsg').textContent='Error al eliminar: '+err.message}
 });
 $('btnXlsx').onclick=descargar;
+$('btnRep').onclick=async()=>{
+  $('repBox').innerHTML='<div class="mut">Buscando…</div>';
+  try{
+    const regs=Object.values(norm(await fb('proyecta_registros'))).filter(r=>r&&typeof r==='object');
+    const g={};regs.forEach(r=>{const k=vid(r.numId);if(k)(g[k]=g[k]||[]).push(r)});
+    const rep=Object.entries(g).filter(([,a])=>a.length>1);
+    if(!rep.length){$('repBox').innerHTML='<div class="msg ok">No hay votantes repetidos.</div>';return}
+    $('repBox').innerHTML=`<div class="msg err">${rep.length} identificaciones repetidas (${rep.reduce((t,[,a])=>t+a.length,0)} votos). Elimine los sobrantes desde "Contratistas" → buscar el contrato → votos registrados.</div><div class="scroll" style="max-height:300px"><table><thead><tr><th>Identificación</th><th>Nombre</th><th>Serial</th><th>Contrato</th></tr></thead><tbody>${rep.map(([k,a])=>a.sort((x,y)=>+x.serial-+y.serial).map((r,i)=>`<tr><td>${i?'':esc(r.numId)}</td><td>${esc(String(r.nombre||'').toUpperCase())}</td><td>${esc(r.serial)}</td><td>${esc(r.contrato)}</td></tr>`).join('')).join('')}</tbody></table></div>`;
+  }catch(e){$('repBox').innerHTML='<div class="msg err">Error: '+esc(e.message)+'</div>'}
+};
 $('dArea').onchange=renderR;
 document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{
   document.querySelectorAll('.tabs button').forEach(x=>x.classList.toggle('on',x===b));
@@ -816,7 +895,7 @@ function impValidar(){
   const {rows,hi,col,fresh}=impRaw;const c=C[sel];
   const g=(r,k)=>k in col?r[col[k]]:'';
   const auto=$('impAuto')?$('impAuto').checked:true;
-  impItems=[];const vistos={};
+  impItems=[];const vistos={};const mapaV=mapaVot(fresh),seenId={};
   for(let i=hi+1;i<rows.length;i++){
     const r=rows[i];if(!r.some(x=>String(x).trim()!==''))continue;
     const fila=i+1,err=[];
@@ -835,6 +914,11 @@ function impValidar(){
     const nombre=impCel(g(r,'nombre')).toUpperCase();if(!nombre)adv.push('Falta nombre');
     const tipo=op('tipo',OPC.tipo,'tipo de identificación');
     const numId=impCel(g(r,'numId')).toUpperCase();if(!numId)adv.push('Falta número de identificación');
+    const kid=vid(numId);
+    if(kid){const o=mapaV[kid];
+      if(o&&!(!usarAuto&&String(o.serial)===String(serial)&&String(o.contrato)===String(c.contrato)))err.push(`Votante ya registrado: identificación ${numId} (serial ${o.serial}, contrato ${o.contrato})`);
+      else if(seenId[kid])err.push(`Identificación ${numId} repetida en el Excel (fila ${seenId[kid]})`);
+      if(!seenId[kid])seenId[kid]=fila}
     const fecha=impFecha(g(r,'fecha'));if(!fecha)adv.push(impCel(g(r,'fecha'))?'Fecha de expedición no válida, queda vacía':'Falta fecha de expedición');
     let edad=parseInt(impCel(g(r,'edad')),10);if(!(edad>=1&&edad<=120)){adv.push(impCel(g(r,'edad'))?'Edad no válida, queda vacía':'Falta edad');edad=''}
     const sexo=op('sexo',OPC.sexo,'sexo');
@@ -875,7 +959,7 @@ function renderImp(){
   if(dup.length)h+=`<label style="display:flex;gap:8px;align-items:center;margin:8px 0"><input type="checkbox" id="impOver" ${over?'checked':''} style="width:auto"> Sobrescribir los ${dup.length} seriales ya digitados (${dup.slice(0,8).map(x=>x.serial).join(', ')}${dup.length>8?'…':''})</label>`;
   if(bad.length)h+=`<div class="scroll imp-err" style="max-height:260px"><table><thead><tr><th>Fila</th><th>Serial</th><th>Errores</th></tr></thead><tbody>${bad.slice(0,200).map(x=>`<tr><td>${x.fila}</td><td>${esc(x.usarAuto?'(auto)':x.serial)}</td><td>${x.err.map(esc).join('; ')}</td></tr>`).join('')}</tbody></table></div>${bad.length>200?'<div class="mut">Se muestran los primeros 200 errores.</div>':''}<div class="mut" style="margin:6px 0">Las filas con error no se importan. Corrígelas en el Excel y vuelve a cargarlo.</div>`;
   if(inc.length)h+=`<details style="margin:8px 0"><summary style="cursor:pointer">Ver filas con información incompleta (${inc.length})</summary><div class="scroll imp-err" style="max-height:220px"><table><thead><tr><th>Fila</th><th>Serial</th><th>Observaciones</th></tr></thead><tbody>${inc.slice(0,200).map(x=>`<tr><td>${x.fila}</td><td>${esc(x.usarAuto?'(auto)':x.serial)}</td><td>${x.adv.map(esc).join('; ')}</td></tr>`).join('')}</tbody></table></div></details>`;
-  h+=`<div style="margin-top:8px"><button id="btnImp" ${aImp?'':'disabled'}>Importar ${aImp} formulario${aImp===1?'':'s'}</button></div><div id="impMsg"></div>`;
+  h+=`<div style="margin-top:8px"><button id="btnImp" ${aImp?'':'disabled'}>Importar ${aImp} voto${aImp===1?'':'s'}</button></div><div id="impMsg"></div>`;
   $('impRes').innerHTML=h;
   if($('impOver'))$('impOver').onchange=renderImp;
   $('impAuto').onchange=impValidar;
@@ -886,22 +970,27 @@ async function importar(){
   const lista=impItems.filter(x=>x.rec&&(!x.existe||over));
   if(!lista.length)return;
   const c=C[sel];
-  if(!(await pedirClave(`Importar ${lista.length} formularios al contrato ${c.contrato}`)))return;
+  if(!(await pedirClave(`Importar ${lista.length} votos al contrato ${c.contrato}`)))return;
   const btn=$('btnImp');btn.disabled=true;btn.textContent='Importando…';
   try{
     const fresh=norm(await fb('proyecta_registros'));
     let mx=Math.max(0,...Object.values(fresh).filter(r=>String(r.contrato)===String(c.contrato)).map(r=>r.n||0));
-    const now=new Date().toISOString(),upd=[];
+    const now=new Date().toISOString(),upd=[],omit=[],mv=mapaVot(fresh);
     lista.forEach(x=>{
       const ex=fresh[x.serial];
       if(ex&&String(ex.contrato)!==String(c.contrato))return;
+      const kk=vid(x.rec.numId);
+      if(kk&&mv[kk]&&!(String(mv[kk].serial)===String(x.serial)&&String(mv[kk].contrato)===String(c.contrato))){omit.push(x.serial);return}
+      if(kk)mv[kk]={serial:x.serial,contrato:String(c.contrato)};
       const rec={...x.rec,n:(ex&&ex.n)?ex.n:++mx,ts:(ex&&ex.ts)?ex.ts:now,tsMod:now};
       for(const k in rec){if(typeof rec[k]==='string'&&!['ts','tsMod','fechaExp'].includes(k))rec[k]=rec[k].toUpperCase()}
       rec.codigos=rec.codigos.map(v=>String(v).toUpperCase());
       upd.push(rec);
     });
     for(let i=0;i<upd.length;i+=100){
-      const u={};upd.slice(i,i+100).forEach(r=>{u['proyecta_registros/'+r.serial]=r;u['proyecta_idx/'+c.contrato+'/'+r.serial]=r});
+      const u={};upd.slice(i,i+100).forEach(r=>{u['proyecta_registros/'+r.serial]=r;u['proyecta_idx/'+c.contrato+'/'+r.serial]=r;
+        const k=vid(r.numId);if(k)u['proyecta_votantes/'+k]={serial:r.serial,contrato:c.contrato};
+        const ex=fresh[r.serial],ko=ex&&vid(ex.numId);if(ko&&ko!==k)u['proyecta_votantes/'+ko]=null});
       await fb('','PATCH',u);
     }
     const chk=norm(await fb('proyecta_registros'));
@@ -909,10 +998,36 @@ async function importar(){
     await cargarRegs();pintarAdmin();seleccionar(sel);
     $('impFile').value='';impItems=[];
     $('impRes').innerHTML='';
-    if(fallan.length)msg('impRes',`Se importaron ${upd.length-fallan.length} de ${upd.length}. No se confirmaron en Firebase los seriales: ${fallan.map(r=>r.serial).join(', ')}.`);
-    else msg('impRes',`Se importaron ${upd.length} formularios al contrato ${c.contrato}.`,'ok');
+    if(omit.length)msg('impRes',`Se importaron ${upd.length} votos. Se omitieron por votante repetido los seriales: ${omit.join(', ')}.`,'ok');
+    else if(fallan.length)msg('impRes',`Se importaron ${upd.length-fallan.length} de ${upd.length}. No se confirmaron en Firebase los seriales: ${fallan.map(r=>r.serial).join(', ')}.`);
+    else msg('impRes',`Se importaron ${upd.length} votos al contrato ${c.contrato}.`,'ok');
   }catch(e){msg('impMsg','Error al importar: '+e.message);btn.disabled=false}
 }
+$('cedFile').onchange=async e=>{
+  const file=e.target.files[0];if(!file)return;
+  try{
+    if(typeof XLSX==='undefined')throw new Error('No se cargó la librería de Excel');
+    const wb=XLSX.read(await file.arrayBuffer(),{type:'array'});
+    const rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1,raw:true,defval:''});
+    const hi=rows.slice(0,15).findIndex(r=>r.some(x=>nrm(x).includes('CONTRATO')));
+    if(hi<0)throw new Error('No se encontró la columna "Contrato"');
+    const cc=rows[hi].findIndex(x=>nrm(x).includes('CONTRATO'));
+    const ci=rows[hi].findIndex(x=>/CEDULA|DOCUMENTO|IDENTIFICACION|ULTIMOS|CLAVE/.test(nrm(x)));
+    if(ci<0)throw new Error('No se encontró la columna "Cédula"');
+    const ok=[],sinC=[],sinD=[];const u={};
+    for(let i=hi+1;i<rows.length;i++){
+      const r=rows[i];const k=String(parseInt(String(r[cc]).replace(/\D/g,''),10)||'');if(!k)continue;
+      if(!C[k]){sinC.push(k);continue}
+      const d=ult4(r[ci]);if(!d){sinD.push(k);continue}
+      u['proyecta_contratistas/'+k+'/clave']=await hash4(k,d);ok.push(k);
+    }
+    if(!ok.length){msg('cedRes','No se actualizó ninguna clave.'+(sinC.length?' Contratos que no existen: '+sinC.join(', ')+'.':'')+(sinD.length?' Sin cédula válida: '+sinD.join(', ')+'.':''));return}
+    if(!(await pedirClave('Cargar '+ok.length+' claves de contratistas')))return msg('cedRes','Operación cancelada.','warn');
+    await fb('','PATCH',u);await cargarAdmin();
+    msg('cedRes',`Claves actualizadas: ${ok.length}.`+(sinC.length?` Contratos que no existen: ${sinC.join(', ')}.`:'')+(sinD.length?` Sin cédula válida: ${sinD.join(', ')}.`:''),'ok');
+  }catch(err){msg('cedRes','Error: '+err.message)}
+  $('cedFile').value='';
+};
 $('btnPlantilla').onclick=descargarPlantilla;
 $('impFile').onchange=e=>{const f=e.target.files[0];if(f)impLeer(f)};
 </script>
