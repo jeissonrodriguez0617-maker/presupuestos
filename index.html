@@ -80,7 +80,7 @@ td{text-transform:uppercase}
   <h2>Ingresa tu número de contrato</h2>
   <input type="number" id="inContrato" placeholder="Ej: 1193" inputmode="numeric">
   <label class="l" style="margin-top:10px">Últimos 4 dígitos de tu cédula</label>
-  <input type="password" id="inCed" inputmode="numeric" maxlength="4" placeholder="••••" autocomplete="off">
+  <input type="password" id="inCed" inputmode="numeric" maxlength="15" placeholder="••••" autocomplete="off">
   <div class="mut" style="margin-top:4px">Pregunta de seguridad. Si es tu primer ingreso, esos 4 dígitos quedarán registrados como tu clave.</div>
   <div style="margin-top:10px"><button id="btnIngresar">Ingresar</button></div>
   <div id="loginMsg"></div>
@@ -95,6 +95,7 @@ td{text-transform:uppercase}
     <div class="range" id="cRango" style="margin-top:10px"></div>
     <div class="bar"><i id="cBar" style="width:0"></i></div>
     <div class="mut" id="cProg" style="margin-top:4px"></div>
+    <div id="cFeliz"></div>
   </div>
 
   <div class="card" id="formCard">
@@ -456,7 +457,7 @@ async function ingresar(){
   msg('loginMsg','');
   $('vLogin').classList.add('hide');$('vCaptura').classList.remove('hide');$('btnSalir').classList.remove('hide');
   $('cNombre').textContent=c.nombre;$('cNum').textContent=c.contrato;
-  pintarRango();limpiar();pintarMis();
+  pintarRango();limpiar();pintarMis();if(rangoCompleto())setTimeout(felicitar,400);
 }
 function tieneRango(c){return !!c&&c.desde!==''&&c.hasta!==''&&c.desde!=null&&c.hasta!=null}
 function pintarRango(){
@@ -471,7 +472,15 @@ function progreso(){
   const hechos=Object.keys(mySer).filter(k=>+k>=d&&+k<=h).length;
   $('cBar').style.width=(100*hechos/tot)+'%';
   $('cProg').textContent=`${hechos} de ${tot} digitados · faltan ${tot-hechos}`;
+  $('cFeliz').innerHTML=hechos>=tot?`<div class="msg ok" style="margin-top:10px;text-align:center"><b>🎉 ¡Felicitaciones! Completaste tus ${tot} votos.</b></div>`:'';
 }
+function felicitar(){
+  const ov=document.createElement('div');ov.className='ov';
+  const tot=+me.hasta-+me.desde+1,nom=String(me.nombre||'').split(' ')[0];
+  ov.innerHTML=`<div class="box" style="text-align:center"><div style="font-size:56px">🎉</div><h2 style="color:var(--g)">¡Felicitaciones${nom?', '+esc(nom):''}!</h2><div style="margin:8px 0 14px">Completaste los <b>${tot}</b> votos de tu rango. ¡Gracias por tu compromiso con los Presupuestos Participativos de Engativá!</div><button id="felOk" style="width:100%">Cerrar</button></div>`;
+  document.body.appendChild(ov);ov.querySelector('#felOk').onclick=()=>ov.remove();
+}
+function rangoCompleto(){if(!tieneRango(me))return false;const d=+me.desde,h=+me.hasta;return Object.keys(mySer).filter(k=>+k>=d&&+k<=h).length>=h-d+1}
 function siguienteLibre(desde){
   if(tieneRango(me)){
     const d=+me.desde,h=+me.hasta;
@@ -555,6 +564,7 @@ async function guardar(){
     mySer[serial]=rec;
     pintarMis();progreso();
     const sig=siguienteLibre();
+    if(rangoCompleto()&&editingSerial==null)setTimeout(felicitar,200);
     limpiar(true);$('fSerial').value=sig;
     msg('fMsg',`Serial ${serial} guardado.`+(sig===''&&tieneRango(me)?' ¡Terminaste todo tu rango!':''),'ok');
     $('fNombre').focus();
