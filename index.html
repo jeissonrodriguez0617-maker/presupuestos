@@ -165,6 +165,13 @@ td{text-transform:uppercase}
         <div class="mut" id="sHint" style="margin-top:6px"></div>
         <div style="margin-top:12px" class="row"><button id="btnAsig">Guardar asignación</button><button class="sec" id="btnQuitar">Quitar rango</button></div>
         <div id="sMsg"></div>
+        <div style="margin-top:14px;border-top:1px solid var(--bd);padding-top:12px">
+          <h2 style="margin:0 0 4px">Agregar más seriales</h2>
+          <div class="mut">Suma otro rango a los que ya tiene el contratista. No borra ni cambia los votos ya digitados.</div>
+          <div id="xList" class="mut" style="margin-top:8px"></div>
+          <div class="row" style="align-items:flex-end;margin-top:6px"><div><label class="l">Desde</label><input type="number" id="xDes" inputmode="numeric"></div><div><label class="l">Hasta</label><input type="number" id="xHas" inputmode="numeric"></div><div><button id="btnX" style="width:100%">Agregar rango</button></div></div>
+          <div id="xMsg"></div>
+        </div>
         <div style="margin-top:16px;border-top:1px solid var(--bd);padding-top:14px">
           <h2 style="margin:0 0 6px">Tarjetones con serial</h2>
           <div class="mut">Estos son todos los tarjetones asignados a este contratista. Toca los que necesitas (se marcan en rojo) y luego "Descargar". <b>✓</b> = ya digitado.</div>
@@ -404,7 +411,7 @@ async function cargarAvance(){
     const CC=norm(cs),RR=Object.values(norm(rg));
     const gr=x=>String(x||'').toUpperCase()==='IVC'?'IVC':'SYC'; /* SYC agrupa todas las áreas menos IVC */
     const A={};const get=a=>A[a]||(A[a]={asig:0,dig:0,cont:0});
-    Object.values(CC).forEach(c=>{const a=gr(c.area);const g=get(a);g.cont++;if(tieneRango(c))g.asig+=Math.max(0,+c.hasta-+c.desde+1)});
+    Object.values(CC).forEach(c=>{const a=gr(c.area);const g=get(a);g.cont++;if(tieneRango(c))g.asig+=totSer(c)});
     RR.forEach(r=>{if(!r||typeof r!=='object')return;const c=CC[r.contrato];get(gr((c&&c.area)||r.area)).dig++});
     const orden=['IVC','SYC','PET','EE'];
     const keys=Object.keys(A).sort((x,y)=>{const i=orden.indexOf(x),j=orden.indexOf(y);return (i<0?99:i)-(j<0?99:j)||x.localeCompare(y)}).filter(k=>A[k].asig||A[k].dig);
@@ -415,7 +422,7 @@ async function cargarAvance(){
     const kp=(v,l)=>`<div class="kp"><b>${v}</b><span>${l}</span></div>`;
     const kpis=`<div class="kps">${kp(T.dig,'Votos digitados')}${kp(Math.max(0,T.asig-T.dig),'Votos faltantes')}${kp(T.asig,'Votos asignados')}${kp(conReg+' de '+totC,'Contratistas con registros')}</div>`;
     const cnt={};RR.forEach(r=>{if(r&&typeof r==='object'){const k=String(r.contrato);cnt[k]=(cnt[k]||0)+1}});
-    const lista=Object.keys(cnt).map(k=>{const c=CC[k]||{};const a=tieneRango(c)?Math.max(0,+c.hasta-+c.desde+1):0;return {nom:String(c.nombre||('CONTRATO '+k)).toUpperCase(),area:String(c.area||'').toUpperCase(),dig:cnt[k],asig:a,p:a?Math.min(100,Math.round(cnt[k]/a*100)):0}})
+    const lista=Object.keys(cnt).map(k=>{const c=CC[k]||{};const a=totSer(c);return {nom:String(c.nombre||('CONTRATO '+k)).toUpperCase(),area:String(c.area||'').toUpperCase(),dig:cnt[k],asig:a,p:a?Math.min(100,Math.round(cnt[k]/a*100)):0}})
       .sort((x,y)=>y.p-x.p||y.dig-x.dig||x.nom.localeCompare(y.nom));
     const lis=lista.length?`<details open style="margin-top:10px"><summary style="cursor:pointer;font-weight:700;margin-bottom:6px">Contratistas que han diligenciado votos (${lista.length})</summary><div class="scroll" style="max-height:340px;padding:4px 10px">${lista.map(x=>`<div class="avr"><div class="t"><span><b style="font-size:14px">${esc(x.nom)}</b>${x.area?` <span class="mut">· ${esc(x.area)}</span>`:''}</span><span>${x.dig}${x.asig?' de '+x.asig:''} votos${x.asig?` · <b>${x.p}%</b>`:''}</span></div><div class="tr"><i style="width:${x.p}%"></i></div></div>`).join('')}</div></details>`:'';
     box.className='';
@@ -460,33 +467,39 @@ async function ingresar(){
   pintarRango();limpiar();pintarMis();if(rangoCompleto())setTimeout(felicitar,400);
 }
 function tieneRango(c){return !!c&&c.desde!==''&&c.hasta!==''&&c.desde!=null&&c.hasta!=null}
+function rangos(c){if(!tieneRango(c))return [];const r=[[+c.desde,+c.hasta]];String(c.extra||'').split(',').forEach(p=>{const m=p.trim().match(/^(\d+)-(\d+)$/);if(m)r.push([+m[1],+m[2]])});return r}
+function enRango(c,x){x=+x;return rangos(c).some(([a,b])=>x>=a&&x<=b)}
+function totSer(c){return rangos(c).reduce((t,[a,b])=>t+Math.max(0,b-a+1),0)}
+function listaSer(c){const o=[];rangos(c).forEach(([a,b])=>{for(let i=a;i<=b;i++)o.push(i)});return [...new Set(o)].sort((a,b)=>a-b)}
+function rangosTxt(c){return rangos(c).map(([a,b])=>a+' – '+b).join(' · ')}
 function pintarRango(){
   const ok=tieneRango(me);
   $('cRango').innerHTML=(me.area?`Área: <b>${esc(me.area)}</b>`:'Área: <span class="mut">sin asignar</span>')+'<br>'+
-    (ok?`Te corresponde tabular del serial <b>${+me.desde}</b> al <b>${+me.hasta}</b> (${+me.hasta-+me.desde+1} votos)`:'<span class="mut">Aún no tienes seriales asignados; puedes digitar cualquier serial.</span>');
+    (ok?`Te corresponde tabular ${rangos(me).map(([a,b])=>`del serial <b>${a}</b> al <b>${b}</b>`).join(' y ')} (${totSer(me)} votos)`:'<span class="mut">Aún no tienes seriales asignados; puedes digitar cualquier serial.</span>');
   progreso();
 }
 function progreso(){
   if(!tieneRango(me)){$('cBar').style.width='0';$('cProg').textContent=Object.keys(mySer).length+' votos digitados';return}
-  const d=+me.desde,h=+me.hasta,tot=h-d+1;
-  const hechos=Object.keys(mySer).filter(k=>+k>=d&&+k<=h).length;
-  $('cBar').style.width=(100*hechos/tot)+'%';
-  $('cProg').textContent=`${hechos} de ${tot} digitados · faltan ${tot-hechos}`;
-  $('cFeliz').innerHTML=hechos>=tot?`<div class="msg ok" style="margin-top:10px;text-align:center"><b>🎉 ¡Felicitaciones! Completaste tus ${tot} votos.</b></div>`:'';
+  const tot=totSer(me),hechos=cuentaHechos();
+  $('cBar').style.width=Math.min(100,100*hechos/tot)+'%';
+  $('cProg').textContent=`${hechos} de ${tot} digitados · faltan ${Math.max(0,tot-hechos)}`;
+  $('cFeliz').innerHTML=hechos>=tot?(tot>100?`<div class="msg ok" style="margin-top:10px;text-align:center"><b>🏆 ¡Superaste los 100 votos! Completaste tus ${tot} votos.</b></div>`:`<div class="msg ok" style="margin-top:10px;text-align:center"><b>🎉 ¡Felicitaciones! Completaste tus ${tot} votos.</b></div>`):(hechos>=100?`<div class="msg ok" style="margin-top:10px;text-align:center"><b>🎉 ¡Ya cumpliste los 100 votos! Sigue con los que te faltan.</b></div>`:'');
 }
-function felicitar(){
+function cuentaHechos(){return tieneRango(me)?Object.keys(mySer).filter(k=>enRango(me,k)).length:Object.keys(mySer).length}
+function felicitar(modo){
   const ov=document.createElement('div');ov.className='ov';
-  const tot=+me.hasta-+me.desde+1,nom=String(me.nombre||'').split(' ')[0];
-  ov.innerHTML=`<div class="box" style="text-align:center"><div style="font-size:56px">🎉</div><h2 style="color:var(--g)">¡Felicitaciones${nom?', '+esc(nom):''}!</h2><div style="margin:8px 0 14px">Completaste los <b>${tot}</b> votos de tu rango. ¡Gracias por tu compromiso con los Presupuestos Participativos de Engativá!</div><button id="felOk" style="width:100%">Cerrar</button></div>`;
+  const tot=totSer(me),nom=String(me.nombre||'').split(' ')[0];
+  let ico='🎉',tit='¡Felicitaciones'+(nom?', '+esc(nom):'')+'!',txt=`Completaste los <b>${tot}</b> votos de tu rango. ¡Gracias por tu compromiso con los Presupuestos Participativos de Engativá!`;
+  if(modo==='cien'){txt=`¡Llegaste a los <b>100</b> votos! Aún tienes seriales por digitar: sigue con los que te faltan (${tot-100} más).`}
+  else if(tot>100){ico='🏆';tit='¡Superaste los 100 votos'+(nom?', '+esc(nom):'')+'!';txt=`Completaste los <b>${tot}</b> votos asignados, más allá de la meta de 100. ¡Gracias por tu compromiso y entrega con los Presupuestos Participativos de Engativá!`}
+  ov.innerHTML=`<div class="box" style="text-align:center"><div style="font-size:56px">${ico}</div><h2 style="color:var(--g)">${tit}</h2><div style="margin:8px 0 14px">${txt}</div><button id="felOk" style="width:100%">Cerrar</button></div>`;
   document.body.appendChild(ov);ov.querySelector('#felOk').onclick=()=>ov.remove();
 }
-function rangoCompleto(){if(!tieneRango(me))return false;const d=+me.desde,h=+me.hasta;return Object.keys(mySer).filter(k=>+k>=d&&+k<=h).length>=h-d+1}
+function rangoCompleto(){return tieneRango(me)&&cuentaHechos()>=totSer(me)}
 function siguienteLibre(desde){
   if(tieneRango(me)){
-    const d=+me.desde,h=+me.hasta;
-    for(let k=Math.max(d,desde||d);k<=h;k++)if(!(k in mySer))return k;
-    for(let k=d;k<=h;k++)if(!(k in mySer))return k;
-    return '';
+    const l=listaSer(me);
+    return l.find(k=>k>=(desde||0)&&!(k in mySer))||l.find(k=>!(k in mySer))||'';
   }
   return '';
 }
@@ -508,7 +521,7 @@ async function guardar(){
   const serial=editingSerial!=null?editingSerial:siguienteLibre();
   if(!serial)return msg('fMsg',tieneRango(me)?'¡Ya digitaste todos los votos de tu rango!':'Aún no tienes seriales asignados. Comunícate con el administrador.');
   $('fSerial').value=serial;
-  if(tieneRango(me)&&(serial<+me.desde||serial>+me.hasta))return msg('fMsg',`El serial ${serial} no está en tu rango (${me.desde} – ${me.hasta}).`);
+  if(tieneRango(me)&&!enRango(me,serial))return msg('fMsg',`El serial ${serial} no está en tu rango (${rangosTxt(me)}).`);
   const cods=[...document.querySelectorAll('.cod')].map(i=>i.value.trim());
   document.querySelectorAll('.falta').forEach(x=>x.classList.remove('falta'));
   const falt=[];
@@ -564,7 +577,7 @@ async function guardar(){
     mySer[serial]=rec;
     pintarMis();progreso();
     const sig=siguienteLibre();
-    if(rangoCompleto()&&editingSerial==null)setTimeout(felicitar,200);
+    if(editingSerial==null){if(rangoCompleto())setTimeout(felicitar,200);else if(cuentaHechos()===100)setTimeout(()=>felicitar('cien'),200)}
     limpiar(true);$('fSerial').value=sig;
     msg('fMsg',`Serial ${serial} guardado.`+(sig===''&&tieneRango(me)?' ¡Terminaste todo tu rango!':''),'ok');
     $('fNombre').focus();
@@ -629,7 +642,7 @@ function pintarAdmin(){
   $('tbC').innerHTML=ks.map(k=>{
     const c=C[k];
     const hechos=Object.keys(allIdx[k]||{}).length;
-    return `<tr data-k="${k}" style="cursor:pointer" title="Ver votos"><td>${esc(c.contrato)}</td><td>${esc(c.nombre)}</td><td>${c.area?esc(c.area):'<span class="mut">sin asignar</span>'}</td><td>${tieneRango(c)?esc(c.desde)+' – '+esc(c.hasta):'<span class="mut">sin asignar</span>'}</td><td>${hechos}</td><td>${c.clave?'✓':'<span class="mut">sin clave</span>'}${(INT[k]&&INT[k].n)?` <span style="color:var(--red)">⚠ ${+INT[k].n} intento${+INT[k].n===1?'':'s'}</span> <button class="sec" data-u="${k}" style="padding:3px 8px;font-size:12px">Desbloquear</button>`:''}${c.clave?` <button class="sec" data-r="${k}" style="padding:3px 8px;font-size:12px">Reiniciar clave</button>`:''}</td><td style="white-space:nowrap"><button data-a="${k}">Asignar</button> <button class="sec" data-e="${k}">Editar</button> <button class="red" data-d="${k}">Eliminar</button></td></tr>`;
+    return `<tr data-k="${k}" style="cursor:pointer" title="Ver votos"><td>${esc(c.contrato)}</td><td>${esc(c.nombre)}</td><td>${c.area?esc(c.area):'<span class="mut">sin asignar</span>'}</td><td>${tieneRango(c)?esc(rangosTxt(c)):'<span class="mut">sin asignar</span>'}</td><td>${hechos}</td><td>${c.clave?'✓':'<span class="mut">sin clave</span>'}${(INT[k]&&INT[k].n)?` <span style="color:var(--red)">⚠ ${+INT[k].n} intento${+INT[k].n===1?'':'s'}</span> <button class="sec" data-u="${k}" style="padding:3px 8px;font-size:12px">Desbloquear</button>`:''}${c.clave?` <button class="sec" data-r="${k}" style="padding:3px 8px;font-size:12px">Reiniciar clave</button>`:''}</td><td style="white-space:nowrap"><button data-a="${k}">Asignar</button> <button class="sec" data-e="${k}">Editar</button> <button class="red" data-d="${k}">Eliminar</button></td></tr>`;
   }).join('');
 }
 let editKey=null;
@@ -643,7 +656,7 @@ async function guardarContratista(){
     const upd={};
     if(editKey&&editKey!==String(n)){upd['proyecta_contratistas/'+editKey]=null}
     const prev=C[editKey||n]||{};
-    const nuevo={contrato:n,nombre:nm,area,desde:prev.desde==null?'':prev.desde,hasta:prev.hasta==null?'':prev.hasta};
+    const nuevo={contrato:n,nombre:nm,area,desde:prev.desde==null?'':prev.desde,hasta:prev.hasta==null?'':prev.hasta,extra:prev.extra||''};
     const cd=ult4($('aCed').value);
     if(cd)nuevo.clave=await hash4(n,cd);
     else if(prev.clave&&(!editKey||editKey===String(n)))nuevo.clave=prev.clave; /* al cambiar el N° de contrato la clave se reinicia */
@@ -682,7 +695,7 @@ function buscar(){
   if(exact!==undefined||m.length===1){$('sRes').innerHTML='';seleccionar(exact!==undefined?exact:m[0]);return}
   $('sRes').innerHTML=m.slice(0,8).map(k=>`<button class="sec" style="margin:3px 6px 3px 0;text-align:left" data-s="${k}">${k} · ${esc(C[k].nombre)}</button>`).join('')+(m.length>8?`<div class="mut">…y ${m.length-8} más, escribe más dígitos.</div>`:'');
 }
-function ultimoAsignado(){let mx=0;for(const k in C){if(tieneRango(C[k]))mx=Math.max(mx,+C[k].hasta)}return mx}
+function ultimoAsignado(){let mx=0;for(const k in C)rangos(C[k]).forEach(([a,b])=>{mx=Math.max(mx,b)});return mx}
 function pintarFormsSel(k){
   const rs=Object.entries(allReg).filter(([,r])=>String(r.contrato)===String(k)).sort((a,b)=>(+(a[1].serial==null?a[0]:a[1].serial))-(+(b[1].serial==null?b[0]:b[1].serial)));
   $('sFCnt').textContent=rs.length;
@@ -700,16 +713,44 @@ function seleccionar(k){
   $('sDes').value=tieneRango(c)?c.desde:'';$('sHas').value=tieneRango(c)?c.hasta:'';
   const u=ultimoAsignado();
   $('sHint').textContent=u?`Último serial asignado: ${u} · siguiente libre: ${u+1}`:'Aún no hay seriales asignados.';
-  pintarFormsSel(k);pintarTj();
+  pintarFormsSel(k);pintarTj();pintarExtras();
   $('sDes').focus();
 }
 function solapa(d,h,except){
-  for(const k in C){if(String(k)===String(except))continue;const c=C[k];if(!tieneRango(c))continue;
-    if(d<=+c.hasta&&h>=+c.desde)return c}
+  for(const k in C){if(String(k)===String(except))continue;const c=C[k];
+    const o=rangos(c).find(([a,b])=>d<=b&&h>=a);
+    if(o)return {nombre:c.nombre,contrato:c.contrato,desde:o[0],hasta:o[1]}}
   return null;
+}
+function pintarExtras(){
+  const c=C[sel]||{},r=rangos(c).slice(1);
+  $('xList').innerHTML=r.length?r.map((x,i)=>`<span class="tjc" style="display:inline-block;margin:2px 6px 2px 0;cursor:default">${x[0]} – ${x[1]} <b data-xq="${i}" style="color:var(--g);cursor:pointer;margin-left:6px" title="Quitar">✕</b></span>`).join(''):'Sin rangos adicionales.';
+  $('xDes').value='';$('xHas').value='';msg('xMsg','');
+}
+async function addExtra(){
+  if(!sel)return;const d=+$('xDes').value,h=+$('xHas').value;
+  if(!(d>=1)||!(h>=d))return msg('xMsg','Escribe "desde" y "hasta" (hasta ≥ desde).');
+  try{
+    C=await fb('proyecta_contratistas')||{};if(!C[sel])return msg('xMsg','El contratista ya no existe.');
+    if(!tieneRango(C[sel]))return msg('xMsg','Primero asígnale un rango principal.');
+    const o=solapa(d,h,sel);if(o)return msg('xMsg',`El rango se cruza con el de ${o.nombre} (contrato ${o.contrato}: ${o.desde} – ${o.hasta}).`);
+    if(rangos(C[sel]).some(([a,b])=>d<=b&&h>=a))return msg('xMsg','Ese rango se cruza con otro que ya tiene este contratista.');
+    const nuevo=(C[sel].extra?C[sel].extra+',':'')+d+'-'+h;
+    await fb('proyecta_contratistas/'+sel,'PATCH',{extra:nuevo});
+    const k=sel;await cargarAdmin();seleccionar(k);msg('xMsg',`Agregado: ${d} – ${h}. Los votos ya digitados no se tocan.`,'ok');
+  }catch(e){msg('xMsg','Error: '+e.message)}
+}
+async function quitarExtra(i){
+  const c=C[sel];if(!c)return;const ex=String(c.extra||'').split(',').map(x=>x.trim()).filter(Boolean);const q=ex[i];if(!q)return;
+  const [a,b]=q.split('-').map(Number);
+  const hay=Object.keys(allIdx[sel]||{}).filter(x=>+x>=a&&+x<=b);
+  if(!confirm(hay.length?`Ese rango tiene ${hay.length} voto(s) ya digitados; no se borran, pero quedarán fuera del rango. ¿Quitar ${q}?`:`¿Quitar el rango ${q}?`))return;
+  if(!(await pedirClave('Quitar el rango '+q+' del contrato '+sel)))return msg('xMsg','Operación cancelada.','warn');
+  try{ex.splice(i,1);await fb('proyecta_contratistas/'+sel,'PATCH',{extra:ex.join(',')});const k=sel;await cargarAdmin();seleccionar(k);msg('xMsg','Rango quitado.','ok')}catch(e){msg('xMsg','Error: '+e.message)}
 }
 async function asignar(quitar){
   if(!sel)return;
+  if(quitar&&!(await pedirClave('Quitar el rango del contrato '+sel)))return msg('sMsg','Operación cancelada.','warn');
   const d=quitar?'':$('sDes').value.trim(),h=quitar?'':$('sHas').value.trim();
   if((d===''&&h!=='')||(d!==''&&h===''))return msg('sMsg','Completa serial desde y hasta.');
   if(d!==''&&(+d<1||+h<+d))return msg('sMsg','El serial "hasta" debe ser mayor o igual al "desde".');
@@ -720,10 +761,11 @@ async function asignar(quitar){
     if(d!==''){
       const o=solapa(+d,+h,sel);
       if(o)return msg('sMsg',`El rango se cruza con el de ${o.nombre} (contrato ${o.contrato}: ${o.desde} – ${o.hasta}).`);
-      const fuera=Object.keys(allIdx[sel]||{}).filter(x=>+x<+d||+x>+h);
+      const tmp={desde:+d,hasta:+h,extra:C[sel].extra};if(rangos(tmp).slice(1).some(([a,b])=>+d<=b&&+h>=a))return msg('sMsg','El rango principal se cruza con uno adicional de este contratista.');
+      const fuera=Object.keys(allIdx[sel]||{}).filter(x=>!enRango(tmp,x));
       if(fuera.length&&!confirm(`Este contratista ya digitó ${fuera.length} serial(es) fuera del nuevo rango (${fuera.slice(0,5).join(', ')}${fuera.length>5?'…':''}). Esos registros no se borran. ¿Continuar?`))return;
     }
-    await fb('proyecta_contratistas/'+sel,'PATCH',{desde:d===''?'':+d,hasta:h===''?'':+h});
+    await fb('proyecta_contratistas/'+sel,'PATCH',d===''?{desde:'',hasta:'',extra:''}:{desde:+d,hasta:+h});
     const k=sel;await cargarAdmin();seleccionar(k);
     msg('sMsg',d===''?'Rango quitado.':`Asignado: ${d} – ${h}.`,'ok');
   }catch(e){msg('sMsg','Error: '+e.message)}
@@ -732,6 +774,8 @@ $('sBuscar').addEventListener('input',buscar);
 $('sBuscar').addEventListener('keydown',e=>{if(e.key==='Enter'){const b=$('sRes').querySelector('[data-s]');if(b)seleccionar(b.dataset.s)}});
 $('sRes').addEventListener('click',e=>{const b=e.target.closest('[data-s]');if(b){$('sRes').innerHTML='';seleccionar(b.dataset.s)}});
 $('btnAsig').onclick=()=>asignar(false);
+$('btnX').onclick=addExtra;
+$('xList').onclick=e=>{const b=e.target.closest('[data-xq]');if(b)quitarExtra(+b.dataset.xq)};
 $('btnFRef').onclick=async()=>{if(!sel)return;const k=sel;try{await cargarAdmin();seleccionar(k)}catch(e){msg('sMsg','Error: '+e.message)}};
 $('sFBody').addEventListener('click',async e=>{
   const b=e.target.closest('[data-del]');if(!b||!sel)return;
@@ -855,8 +899,8 @@ const TJ_PDF="JVBERi0xLjUKJafj8fEKMiAwIG9iago8PAovVHlwZSAvQ2F0YWxvZwovUGFnZXMgNC
 function parseSeriales(t){const o=new Set();String(t||'').split(/[,;\s]+/).filter(Boolean).forEach(p=>{const m=p.match(/^(\d+)(?:-(\d+))?$/);if(!m)return;let x=+m[1],y=m[2]?+m[2]:x;if(y<x)[x,y]=[y,x];for(let i=x;i<=y&&i-x<5000;i++)o.add(i)});return [...o].sort((a,b)=>a-b)}
 function serialesTarj(k,txt,modo){
   const c=C[k];if(!tieneRango(c))return[];const h=allIdx[k]||{};
-  let l=[];if(String(txt||'').trim())l=parseSeriales(txt);else for(let i=+c.desde;i<=+c.hasta;i++)l.push(i);
-  l=l.filter(x=>x>=+c.desde&&x<=+c.hasta);
+  let l=[];if(String(txt||'').trim())l=parseSeriales(txt);else l=listaSer(c);
+  l=l.filter(x=>enRango(c,x));
   if(modo==='pend')l=l.filter(x=>!h[x]);if(modo==='dig')l=l.filter(x=>h[x]);
   return l}
 async function tarjetonesPDF(grupos,nombre){
@@ -880,11 +924,11 @@ function pintarTj(){
   const c=C[sel],g=$('tjGrid');
   if(!tieneRango(c)){g.innerHTML='<div class="mut">Este contratista no tiene rango asignado.</div>';TJS=new Set();tjCnt();return}
   const h=allIdx[sel]||{};let o='';
-  for(let i=+c.desde;i<=+c.hasta;i++)o+=`<span class="tjc${h[i]?' dg':''}${TJS.has(i)?' on':''}" data-s="${i}">${i}${h[i]?' ✓':''}</span>`;
+  listaSer(c).forEach(i=>{o+=`<span class="tjc${h[i]?' dg':''}${TJS.has(i)?' on':''}" data-s="${i}">${i}${h[i]?' ✓':''}</span>`});
   g.innerHTML=o;tjCnt()}
 function tjCnt(){$('btnTj').textContent=`Descargar tarjetones seleccionados (${TJS.size})`}
 $('tjGrid').onclick=e=>{const t=e.target.closest('.tjc');if(!t)return;const n=+t.dataset.s;if(TJS.has(n))TJS.delete(n);else TJS.add(n);t.classList.toggle('on');tjCnt()};
-function tjSel(fn){const c=C[sel];if(!tieneRango(c))return;const h=allIdx[sel]||{};TJS=new Set();for(let i=+c.desde;i<=+c.hasta;i++)if(fn(i,!!h[i]))TJS.add(i);pintarTj()}
+function tjSel(fn){const c=C[sel];if(!tieneRango(c))return;const h=allIdx[sel]||{};TJS=new Set();listaSer(c).forEach(i=>{if(fn(i,!!h[i]))TJS.add(i)});pintarTj()}
 $('tjAll').onclick=()=>tjSel(()=>true);$('tjNone').onclick=()=>tjSel(()=>false);
 $('tjPend').onclick=()=>tjSel((i,d)=>!d);$('tjDig').onclick=()=>tjSel((i,d)=>d);
 $('btnTj').onclick=async()=>{
@@ -900,7 +944,7 @@ function pintarTarj(){
   const ta=$('tArea'),cur=ta.value;ta.innerHTML='<option value="">Todas las áreas</option>'+areas.map(a=>`<option value="${esc(a)}">${esc(a)}</option>`).join('');ta.value=cur;if(ta.value!==cur)ta.value='';
   const q=$('tBus').value.trim().toUpperCase();
   const ks=Object.keys(C).map(Number).sort((a,b)=>a-b).filter(k=>tieneRango(C[k])&&(!ta.value||C[k].area===ta.value)&&(!q||String(k).includes(q)||String(C[k].nombre||'').toUpperCase().includes(q)));
-  $('tBody').innerHTML=ks.map(k=>{const c=C[k];return `<tr><td><input type="checkbox" data-tk="${k}" ${TSEL[k]?'checked':''}></td><td>${k}</td><td>${esc(c.nombre)}</td><td>${esc(c.area||'')}</td><td>${c.desde} – ${c.hasta}</td><td>${Object.keys(allIdx[k]||{}).length} / ${+c.hasta-+c.desde+1}</td><td><input type="text" data-tt="${k}" value="${esc(TTXT[k]||'')}" placeholder="todo" style="min-width:120px"></td><td><button class="sec" data-tv="${k}">Ver y elegir</button></td></tr>`}).join('')||'<tr><td colspan="8" class="mut">No hay contratistas con rango asignado.</td></tr>';
+  $('tBody').innerHTML=ks.map(k=>{const c=C[k];return `<tr><td><input type="checkbox" data-tk="${k}" ${TSEL[k]?'checked':''}></td><td>${k}</td><td>${esc(c.nombre)}</td><td>${esc(c.area||'')}</td><td>${esc(rangosTxt(c))}</td><td>${Object.keys(allIdx[k]||{}).length} / ${totSer(c)}</td><td><input type="text" data-tt="${k}" value="${esc(TTXT[k]||'')}" placeholder="todo" style="min-width:120px"></td><td><button class="sec" data-tv="${k}">Ver y elegir</button></td></tr>`}).join('')||'<tr><td colspan="8" class="mut">No hay contratistas con rango asignado.</td></tr>';
   $('tBody').querySelectorAll('[data-tk]').forEach(i=>i.onchange=()=>{TSEL[i.dataset.tk]=i.checked});
   $('tBody').querySelectorAll('[data-tv]').forEach(b=>b.onclick=()=>{document.querySelector('.tabs button[data-t=tC]').click();seleccionar(b.dataset.tv);$('sAsig').scrollIntoView()});
   $('tBody').querySelectorAll('[data-tt]').forEach(i=>i.oninput=()=>{TTXT[i.dataset.tt]=i.value;if(i.value.trim()){TSEL[i.dataset.tt]=true;const cb=$('tBody').querySelector(`[data-tk="${i.dataset.tt}"]`);if(cb)cb.checked=true}});
@@ -1001,7 +1045,7 @@ function impValidar(){
     const usarAuto=auto||!(sf>0);
     let serial=usarAuto?0:sf,existe=null;
     if(!usarAuto){
-      if(tieneRango(c)&&(serial<+c.desde||serial>+c.hasta))err.push(`Serial fuera del rango (${c.desde}–${c.hasta})`);
+      if(tieneRango(c)&&!enRango(c,serial))err.push(`Serial fuera del rango (${rangosTxt(c)})`);
       if(vistos[serial])err.push(`Serial repetido en el Excel (fila ${vistos[serial]})`);else vistos[serial]=fila;
       const ex=fresh[serial];if(ex){if(String(ex.contrato)!==String(c.contrato))err.push(`Serial ya digitado por el contrato ${ex.contrato}`);else existe=ex}
     }
@@ -1034,7 +1078,7 @@ function impValidar(){
   /* seriales libres del rango: los que faltan por asignar */
   const usados=new Set(Object.keys(fresh).map(Number));
   impItems.forEach(x=>{if(!x.usarAuto&&x.serial>0)usados.add(x.serial)});
-  const libres=[];if(tieneRango(c))for(let k=+c.desde;k<=+c.hasta;k++)if(!usados.has(k))libres.push(k);
+  const libres=tieneRango(c)?listaSer(c).filter(k=>!usados.has(k)):[];
   let li=0;
   impItems.forEach(x=>{
     if(x.usarAuto&&!x.err.length){
