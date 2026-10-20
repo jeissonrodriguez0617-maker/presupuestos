@@ -701,7 +701,7 @@ function pintarFormsSel(k){
   $('sFCnt').textContent=rs.length;
   $('sFBody').innerHTML=rs.map(([key,r])=>{const c=r.codigos||[];
     const cells=[r.n,r.serial==null?key:r.serial,r.localidad,r.nombre,r.tipoId,r.numId,r.fechaExp,r.edad,r.sexo,r.org,r.disc,r.discTipo,r.estrato,c[0],c[1],c[2],c[3],c[4]];
-    return '<tr>'+cells.map(v=>`<td>${esc(v)}</td>`).join('')+`<td><button class="red" data-del="${esc(key)}">Eliminar</button></td></tr>`}).join('')||'<tr><td colspan="19" class="mut">Este contratista aún no ha registrado votos.</td></tr>';
+    return '<tr>'+cells.map(v=>`<td>${esc(v)}</td>`).join('')+`<td style="white-space:nowrap"><button class="sec" data-mv="${esc(key)}">Cambiar serial</button> <button class="red" data-del="${esc(key)}">Eliminar</button></td></tr>`}).join('')||'<tr><td colspan="19" class="mut">Este contratista aún no ha registrado votos.</td></tr>';
 }
 function seleccionar(k){
   const c=C[k];if(!c)return;
@@ -773,6 +773,39 @@ async function asignar(quitar){
 $('sBuscar').addEventListener('input',buscar);
 $('sBuscar').addEventListener('keydown',e=>{if(e.key==='Enter'){const b=$('sRes').querySelector('[data-s]');if(b)seleccionar(b.dataset.s)}});
 $('sRes').addEventListener('click',e=>{const b=e.target.closest('[data-s]');if(b){$('sRes').innerHTML='';seleccionar(b.dataset.s)}});
+function pedirMover(old,c){
+  return new Promise(res=>{
+    const ov=document.createElement('div');ov.className='ov';
+    ov.innerHTML=`<div class="box"><h2>Cambiar serial</h2><div class="mut" style="margin-bottom:8px">El voto del serial <b>${esc(old)}</b> pasará al serial que indiques. Rango del contratista: ${esc(rangosTxt(c))}. Si ese serial ya tiene un voto, los dos se <b>intercambian</b>.</div><label class="l">Nuevo serial</label><input type="number" id="mvNew" inputmode="numeric"><label class="l" style="margin-top:8px">Clave</label><input type="password" id="mvClave" inputmode="numeric" autocomplete="off"><div id="mvMsg"></div><div class="row" style="margin-top:10px"><button id="mvOk">Cambiar</button><button class="sec" id="mvNo">Cancelar</button></div></div>`;
+    document.body.appendChild(ov);const n=ov.querySelector('#mvNew');n.focus();
+    const fin=v=>{document.removeEventListener('keydown',kd,true);ov.remove();res(v)};
+    const ok=()=>{const v=+n.value;
+      if(!(v>=1))return msg('mvMsg','Escribe el nuevo serial.');
+      if(String(v)===String(old))return msg('mvMsg','Ese ya es el serial actual.');
+      if(!enRango(c,v))return msg('mvMsg','El serial '+v+' no está en el rango del contratista.');
+      if(ov.querySelector('#mvClave').value!==CLAVE){ov.querySelector('#mvClave').value='';return msg('mvMsg','Clave incorrecta.')}
+      fin(v)};
+    const kd=e=>{if(e.key==='Escape')fin(null)};document.addEventListener('keydown',kd,true);
+    ov.querySelector('#mvOk').onclick=ok;ov.querySelector('#mvNo').onclick=()=>fin(null);
+    ov.querySelectorAll('input').forEach(i=>i.addEventListener('keydown',e=>{if(e.key==='Enter')ok()}));
+  });
+}
+async function moverSerial(old){
+  const c=C[sel];if(!c)return;
+  const nw=await pedirMover(old,c);if(!nw)return;
+  try{
+    const [A,B]=await Promise.all([fb('proyecta_registros/'+old),fb('proyecta_registros/'+nw)]);
+    if(!A||String(A.contrato)!==String(sel))return msg('sMsg','El voto del serial '+old+' ya no existe.');
+    if(B&&String(B.contrato)!==String(sel))return msg('sMsg',`El serial ${nw} ya lo usa otro contratista (contrato ${B.contrato}). No se cambió nada.`);
+    const upd={},put=(r,sv)=>{const x=Object.assign({},r,{serial:sv});upd['proyecta_registros/'+sv]=x;upd['proyecta_idx/'+sel+'/'+sv]=x;const k=vid(r.numId);if(k)upd['proyecta_votantes/'+k]={serial:sv,contrato:String(sel)}};
+    put(A,nw);
+    if(B)put(B,+old);else{upd['proyecta_registros/'+old]=null;upd['proyecta_idx/'+sel+'/'+old]=null}
+    await fb('','PATCH',upd);VOT_ts=0;
+    const k=sel;await cargarAdmin();seleccionar(k);
+    msg('sMsg',B?`Serial ${old} y ${nw} intercambiados.`:`Voto movido del serial ${old} al ${nw}.`,'ok');
+  }catch(e){msg('sMsg','Error: '+e.message)}
+}
+$('sFBody').addEventListener('click',e=>{const b=e.target.closest('[data-mv]');if(b&&sel)moverSerial(b.dataset.mv)});
 $('btnAsig').onclick=()=>asignar(false);
 $('btnX').onclick=addExtra;
 $('xList').onclick=e=>{const b=e.target.closest('[data-xq]');if(b)quitarExtra(+b.dataset.xq)};
