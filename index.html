@@ -79,9 +79,9 @@ td{text-transform:uppercase}
   <div class="aviso">Los <b>Presupuestos Participativos</b> son un mecanismo de democracia directa donde la ciudadanía decide de forma transparente cómo invertir una parte del presupuesto público de su municipio o localidad. En este proceso, los propios vecinos proponen, debaten y votan proyectos prioritarios —como obras comunitarias, programas culturales o mejoras urbanas— para dar respuesta a las necesidades reales de su comunidad.</div>
   <h2>Ingresa tu número de contrato</h2>
   <input type="number" id="inContrato" placeholder="Ej: 1193" inputmode="numeric">
-  <label class="l" style="margin-top:10px">Últimos 4 dígitos de tu cédula</label>
-  <input type="password" id="inCed" inputmode="numeric" maxlength="15" placeholder="••••" autocomplete="off">
-  <div class="mut" style="margin-top:4px">Pregunta de seguridad. Si es tu primer ingreso, esos 4 dígitos quedarán registrados como tu clave.</div>
+  <label class="l" style="margin-top:10px">Últimos 4 dígitos de tu cédula (solo 4 números)</label>
+  <input type="password" id="inCed" inputmode="numeric" maxlength="4" placeholder="••••" autocomplete="off">
+  <div class="mut" style="margin-top:4px">Escribe <b>solo los últimos 4 números</b> de tu cédula (ej.: cédula 1014199152 → <b>9152</b>). Si es tu primer ingreso, esos 4 dígitos quedarán registrados como tu clave.</div>
   <div style="margin-top:10px"><button id="btnIngresar">Ingresar</button></div>
   <div id="loginMsg"></div>
 </section>
