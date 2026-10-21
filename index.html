@@ -158,6 +158,7 @@ td{text-transform:uppercase}
       <div id="sRes" style="margin-top:8px"></div>
       <div id="sAsig" class="hide" style="margin-top:10px">
         <div class="range" id="sInfo"></div>
+        <div id="entBox" style="margin:8px 0"></div>
         <div class="row">
           <div><label class="l">Serial desde</label><input type="number" id="sDes" inputmode="numeric"></div>
           <div><label class="l">Serial hasta</label><input type="number" id="sHas" inputmode="numeric"></div>
@@ -195,7 +196,7 @@ td{text-transform:uppercase}
       <h2>Contratistas (<span id="nCont">0</span>)</h2>
       <div class="row" style="margin-bottom:10px"><input type="text" id="fNum" placeholder="Filtrar por N° de contrato" inputmode="numeric" autocomplete="off"><input type="text" id="fNom" placeholder="Filtrar por nombre" autocomplete="off"><select id="fArea"></select></div>
       <div style="margin-bottom:10px"><div class="mut">Cargar cédulas desde Excel (columnas: Contrato y Cédula). Solo se usan los últimos 4 dígitos y se guardan cifrados.</div><input type="file" id="cedFile" accept=".xlsx,.xls,.csv" style="margin-top:6px"><div id="cedRes" style="margin-top:6px"></div></div>
-      <div class="scroll"><table><thead><tr><th>Contrato</th><th>Nombre</th><th>Área</th><th>Seriales</th><th>Digitados</th><th>Clave</th><th></th></tr></thead><tbody id="tbC"></tbody></table></div>
+      <div class="scroll"><table><thead><tr><th>Contrato</th><th>Nombre</th><th>Área</th><th>Seriales</th><th>Digitados</th><th>Clave</th><th>Entrega</th><th></th></tr></thead><tbody id="tbC"></tbody></table></div>
     </div>
     <div class="card">
       <h2 id="adTitulo">Agregar contratista</h2>
@@ -422,9 +423,9 @@ async function cargarAvance(){
     const kp=(v,l)=>`<div class="kp"><b>${v}</b><span>${l}</span></div>`;
     const kpis=`<div class="kps">${kp(T.dig,'Votos digitados')}${kp(Math.max(0,T.asig-T.dig),'Votos faltantes')}${kp(T.asig,'Votos asignados')}${kp(conReg+' de '+totC,'Contratistas con registros')}</div>`;
     const cnt={};RR.forEach(r=>{if(r&&typeof r==='object'){const k=String(r.contrato);cnt[k]=(cnt[k]||0)+1}});
-    const lista=Object.keys(cnt).map(k=>{const c=CC[k]||{};const a=totSer(c);return {nom:String(c.nombre||('CONTRATO '+k)).toUpperCase(),area:String(c.area||'').toUpperCase(),dig:cnt[k],asig:a,p:a?Math.min(100,Math.round(cnt[k]/a*100)):0}})
+    const lista=Object.keys(cnt).map(k=>{const c=CC[k]||{};const a=totSer(c);return {nom:String(c.nombre||('CONTRATO '+k)).toUpperCase(),area:String(c.area||'').toUpperCase(),dig:cnt[k],asig:a,p:a?Math.min(100,Math.round(cnt[k]/a*100)):0,ent:!!c.entregado}})
       .sort((x,y)=>y.p-x.p||y.dig-x.dig||x.nom.localeCompare(y.nom));
-    const lis=lista.length?`<details open style="margin-top:10px"><summary style="cursor:pointer;font-weight:700;margin-bottom:6px">Contratistas que han diligenciado votos (${lista.length})</summary><div class="scroll" style="max-height:340px;padding:4px 10px">${lista.map(x=>`<div class="avr"><div class="t"><span><b style="font-size:14px">${esc(x.nom)}</b>${x.area?` <span class="mut">· ${esc(x.area)}</span>`:''}</span><span>${x.dig}${x.asig?' de '+x.asig:''} votos${x.asig?` · <b>${x.p}%</b>`:''}</span></div><div class="tr"><i style="width:${x.p}%"></i></div></div>`).join('')}</div></details>`:'';
+    const lis=lista.length?`<details open style="margin-top:10px"><summary style="cursor:pointer;font-weight:700;margin-bottom:6px">Contratistas que han diligenciado votos (${lista.length})</summary><div class="scroll" style="max-height:340px;padding:4px 10px">${lista.map(x=>`<div class="avr"><div class="t"><span><b style="font-size:14px">${esc(x.nom)}</b>${x.area?` <span class="mut">· ${esc(x.area)}</span>`:''}${x.ent?' <span style="color:#2e7d32;font-weight:700;font-size:12px">✓ ENTREGÓ</span>':''}</span><span>${x.dig}${x.asig?' de '+x.asig:''} votos${x.asig?` · <b>${x.p}%</b>`:''}</span></div><div class="tr"><i style="width:${x.p}%"></i></div></div>`).join('')}</div></details>`:'';
     box.className='';
     box.innerHTML=keys.length?kpis+`<div class="dns">${dona('TODAS',T,true)}${keys.map(k=>dona(k,A[k])).join('')}</div><div class="mut" style="text-align:center;font-size:12px">Votos digitados de los asignados</div>${lis}`:'<span class="mut">Aún no hay votos digitados.</span>';
   }catch(e){box.className='mut';box.textContent='No se pudo cargar el avance: '+e.message}
@@ -632,17 +633,17 @@ async function cargarAdmin(){
 function pintarAdmin(){
   const areas=[...new Set(Object.values(C).map(c=>c.area).filter(Boolean))].sort();
   const sel=$('fArea'),cur=sel.value||'';
-  sel.innerHTML='<option value="">Todas las áreas</option>'+areas.map(a=>`<option>${esc(a)}</option>`).join('')+'<option value="__none">Sin área</option><option value="__con">Con registros digitados</option><option value="__sinclave">Sin clave registrada</option>';
+  sel.innerHTML='<option value="">Todas las áreas</option>'+areas.map(a=>`<option>${esc(a)}</option>`).join('')+'<option value="__none">Sin área</option><option value="__con">Con registros digitados</option><option value="__sinclave">Sin clave registrada</option><option value="__ent">Entregaron votos</option><option value="__pend">Sin entregar votos</option>';
   sel.value=cur;if(sel.value!==cur)sel.value='';
   {const dv=$('dArea').value;$('dArea').innerHTML='<option value="">Todas las áreas</option>'+areas.map(a=>`<option value="${esc(a)}">${esc(a)}</option>`).join('');$('dArea').value=dv;if($('dArea').value!==dv)$('dArea').value=''}
   $('areasList').innerHTML=areas.map(a=>`<option value="${esc(a)}">`).join('');
   const f=sel.value,fn=$('fNum').value.trim(),fm=$('fNom').value.trim().toUpperCase();
-  const ks=Object.keys(C).map(Number).sort((a,b)=>a-b).filter(k=>(!fn||String(k).includes(fn))&&(!fm||String(C[k].nombre||'').toUpperCase().includes(fm))).filter(k=>!f||(f==='__none'?!C[k].area:f==='__con'?Object.keys(allIdx[k]||{}).length>0:f==='__sinclave'?!C[k].clave:C[k].area===f));
+  const ks=Object.keys(C).map(Number).sort((a,b)=>a-b).filter(k=>(!fn||String(k).includes(fn))&&(!fm||String(C[k].nombre||'').toUpperCase().includes(fm))).filter(k=>!f||(f==='__none'?!C[k].area:f==='__con'?Object.keys(allIdx[k]||{}).length>0:f==='__sinclave'?!C[k].clave:f==='__ent'?!!C[k].entregado:f==='__pend'?!C[k].entregado:C[k].area===f));
   $('nCont').textContent=ks.length;
   $('tbC').innerHTML=ks.map(k=>{
     const c=C[k];
     const hechos=Object.keys(allIdx[k]||{}).length;
-    return `<tr data-k="${k}" style="cursor:pointer" title="Ver votos"><td>${esc(c.contrato)}</td><td>${esc(c.nombre)}</td><td>${c.area?esc(c.area):'<span class="mut">sin asignar</span>'}</td><td>${tieneRango(c)?esc(rangosTxt(c)):'<span class="mut">sin asignar</span>'}</td><td>${hechos}</td><td>${c.clave?'✓':'<span class="mut">sin clave</span>'}${(INT[k]&&INT[k].n)?` <span style="color:var(--red)">⚠ ${+INT[k].n} intento${+INT[k].n===1?'':'s'}</span> <button class="sec" data-u="${k}" style="padding:3px 8px;font-size:12px">Desbloquear</button>`:''}${c.clave?` <button class="sec" data-r="${k}" style="padding:3px 8px;font-size:12px">Reiniciar clave</button>`:''}</td><td style="white-space:nowrap"><button data-a="${k}">Asignar</button> <button class="sec" data-e="${k}">Editar</button> <button class="red" data-d="${k}">Eliminar</button></td></tr>`;
+    return `<tr data-k="${k}" style="cursor:pointer" title="Ver votos"><td>${esc(c.contrato)}</td><td>${esc(c.nombre)}</td><td>${c.area?esc(c.area):'<span class="mut">sin asignar</span>'}</td><td>${tieneRango(c)?esc(rangosTxt(c)):'<span class="mut">sin asignar</span>'}</td><td>${hechos}</td><td>${c.clave?'✓':'<span class="mut">sin clave</span>'}${(INT[k]&&INT[k].n)?` <span style="color:var(--red)">⚠ ${+INT[k].n} intento${+INT[k].n===1?'':'s'}</span> <button class="sec" data-u="${k}" style="padding:3px 8px;font-size:12px">Desbloquear</button>`:''}${c.clave?` <button class="sec" data-r="${k}" style="padding:3px 8px;font-size:12px">Reiniciar clave</button>`:''}</td><td>${c.entregado?`<span style="color:#2e7d32;font-weight:700">✓ Entregó</span><div class="mut" style="font-size:11px">${esc(c.entregado)}</div>`:'<span class="mut">Pendiente</span>'}</td><td style="white-space:nowrap"><button data-a="${k}">Asignar</button> <button class="sec" data-e="${k}">Editar</button> <button class="red" data-d="${k}">Eliminar</button></td></tr>`;
   }).join('');
 }
 let editKey=null;
@@ -656,7 +657,7 @@ async function guardarContratista(){
     const upd={};
     if(editKey&&editKey!==String(n)){upd['proyecta_contratistas/'+editKey]=null}
     const prev=C[editKey||n]||{};
-    const nuevo={contrato:n,nombre:nm,area,desde:prev.desde==null?'':prev.desde,hasta:prev.hasta==null?'':prev.hasta,extra:prev.extra||''};
+    const nuevo={contrato:n,nombre:nm,area,desde:prev.desde==null?'':prev.desde,hasta:prev.hasta==null?'':prev.hasta,extra:prev.extra||'',entregado:prev.entregado||'',entN:prev.entN||''};
     const cd=ult4($('aCed').value);
     if(cd)nuevo.clave=await hash4(n,cd);
     else if(prev.clave&&(!editKey||editKey===String(n)))nuevo.clave=prev.clave; /* al cambiar el N° de contrato la clave se reinicia */
@@ -713,7 +714,7 @@ function seleccionar(k){
   $('sDes').value=tieneRango(c)?c.desde:'';$('sHas').value=tieneRango(c)?c.hasta:'';
   const u=ultimoAsignado();
   $('sHint').textContent=u?`Último serial asignado: ${u} · siguiente libre: ${u+1}`:'Aún no hay seriales asignados.';
-  pintarFormsSel(k);pintarTj();pintarExtras();
+  pintarFormsSel(k);pintarTj();pintarExtras();pintarEntrega();
   $('sDes').focus();
 }
 function solapa(d,h,except){
@@ -806,6 +807,26 @@ async function moverSerial(old){
   }catch(e){msg('sMsg','Error: '+e.message)}
 }
 $('sFBody').addEventListener('click',e=>{const b=e.target.closest('[data-mv]');if(b&&sel)moverSerial(b.dataset.mv)});
+function ahoraTxt(){const d=new Date(),p=n=>String(n).padStart(2,'0');return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`}
+function pintarEntrega(){
+  const c=C[sel]||{};
+  $('entBox').innerHTML=c.entregado?`<div class="msg ok" style="display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap"><span>✓ <b>Entregó los votos</b> el ${esc(c.entregado)}${c.entN!==''&&c.entN!=null?` (${+c.entN} votos digitados en ese momento)`:''}</span><button class="sec" id="btnEnt" style="padding:6px 12px">Quitar entrega</button></div>`:`<button id="btnEnt" style="width:100%">Marcar como entregó votos</button>`;
+}
+async function toggleEntrega(){
+  if(!sel)return;const c=C[sel];if(!c)return;
+  try{
+    if(c.entregado){
+      if(!(await pedirClave('Quitar la marca de entrega del contrato '+sel)))return msg('sMsg','Operación cancelada.','warn');
+      await fb('proyecta_contratistas/'+sel,'PATCH',{entregado:'',entN:''});
+    }else{
+      const n=Object.keys(allIdx[sel]||{}).length;
+      if(!confirm(`¿Marcar que ${c.nombre} ya entregó los votos? Tiene ${n} digitados en el aplicativo.`))return;
+      await fb('proyecta_contratistas/'+sel,'PATCH',{entregado:ahoraTxt(),entN:n});
+    }
+    const k=sel;await cargarAdmin();seleccionar(k);msg('sMsg',c.entregado?'Marca de entrega quitada.':'Marcado: entregó los votos.','ok');
+  }catch(e){msg('sMsg','Error: '+e.message)}
+}
+$('entBox').addEventListener('click',e=>{if(e.target.closest('#btnEnt'))toggleEntrega()});
 $('btnAsig').onclick=()=>asignar(false);
 $('btnX').onclick=addExtra;
 $('xList').onclick=e=>{const b=e.target.closest('[data-xq]');if(b)quitarExtra(+b.dataset.xq)};
