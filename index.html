@@ -38,6 +38,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
 .dns{display:flex;justify-content:space-around;gap:6px;margin:10px 0 6px;flex-wrap:wrap}.dn{text-align:center;flex:1;min-width:90px;max-width:150px}.dn svg{width:100%;display:block}.dn b{display:block;font-size:15px}.dn span{font-size:13px;color:var(--mut)}
 .avr{margin:12px 0}.avr .t{display:flex;justify-content:space-between;gap:8px;font-size:14px;margin-bottom:4px;flex-wrap:wrap}.avr .t b{font-size:15px}
 .avr .tr{height:16px;background:#f0e2cc;border-radius:8px;overflow:hidden}.avr .tr i{display:block;height:100%;background:linear-gradient(90deg,#F9A603,#F25C00);border-radius:8px;min-width:0;transition:width .5s}
+.avr.ent .tr i{background:linear-gradient(90deg,#43a047,#2e7d32)}.avr.ent .tr{background:#c8e6c9}.avr.ent .t{color:#1b5e20}.avr.ent .t b{color:#1b5e20}
 .avr.tot .tr i{background:linear-gradient(90deg,#F25C00,#F70025)}
 .bar{height:8px;background:#f0e2cc;border-radius:5px;overflow:hidden;margin-top:8px}.bar i{display:block;height:100%;background:#F9A603}
 table{width:100%;border-collapse:collapse;font-size:13px}
@@ -421,11 +422,11 @@ async function cargarAvance(){
     const T=keys.reduce((t,k)=>({asig:t.asig+A[k].asig,dig:t.dig+A[k].dig}),{asig:0,dig:0});
     const conReg=new Set(RR.filter(r=>r&&typeof r==='object').map(r=>String(r.contrato))).size,totC=Object.keys(CC).length;
     const kp=(v,l)=>`<div class="kp"><b>${v}</b><span>${l}</span></div>`;
-    const kpis=`<div class="kps">${kp(T.dig,'Votos digitados')}${kp(Math.max(0,T.asig-T.dig),'Votos faltantes')}${kp(T.asig,'Votos asignados')}${kp(conReg+' de '+totC,'Contratistas con registros')}</div>`;
+    const kpis=`<div class="kps">${kp(T.dig,'Votos digitados')}${kp(Math.max(0,T.asig-T.dig),'Votos faltantes')}${kp(T.asig,'Votos asignados')}${kp(conReg+' de '+totC,'Contratistas con registros')}${kp(Object.values(CC).filter(c=>c&&c.entregado).length,'Contratistas que entregaron')}</div>`;
     const cnt={};RR.forEach(r=>{if(r&&typeof r==='object'){const k=String(r.contrato);cnt[k]=(cnt[k]||0)+1}});
     const lista=Object.keys(cnt).map(k=>{const c=CC[k]||{};const a=totSer(c);return {nom:String(c.nombre||('CONTRATO '+k)).toUpperCase(),area:String(c.area||'').toUpperCase(),dig:cnt[k],asig:a,p:a?Math.min(100,Math.round(cnt[k]/a*100)):0,ent:!!c.entregado}})
       .sort((x,y)=>y.p-x.p||y.dig-x.dig||x.nom.localeCompare(y.nom));
-    const lis=lista.length?`<details open style="margin-top:10px"><summary style="cursor:pointer;font-weight:700;margin-bottom:6px">Contratistas que han diligenciado votos (${lista.length})</summary><div class="scroll" style="max-height:340px;padding:4px 10px">${lista.map(x=>`<div class="avr"><div class="t"><span><b style="font-size:14px">${esc(x.nom)}</b>${x.area?` <span class="mut">· ${esc(x.area)}</span>`:''}${x.ent?' <span style="color:#2e7d32;font-weight:700;font-size:12px">✓ ENTREGÓ</span>':''}</span><span>${x.dig}${x.asig?' de '+x.asig:''} votos${x.asig?` · <b>${x.p}%</b>`:''}</span></div><div class="tr"><i style="width:${x.p}%"></i></div></div>`).join('')}</div></details>`:'';
+    const lis=lista.length?`<details open style="margin-top:10px"><summary style="cursor:pointer;font-weight:700;margin-bottom:6px">Contratistas que han diligenciado votos (${lista.length})</summary><div class="scroll" style="max-height:340px;padding:4px 10px">${lista.map(x=>`<div class="avr${x.ent?' ent':''}"><div class="t"><span><b style="font-size:14px">${esc(x.nom)}</b>${x.area?` <span class="mut">· ${esc(x.area)}</span>`:''}${x.ent?' <span style="color:#2e7d32;font-weight:700;font-size:12px">✓ ENTREGÓ</span>':''}</span><span>${x.dig}${x.asig?' de '+x.asig:''} votos${x.asig?` · <b>${x.p}%</b>`:''}</span></div><div class="tr"><i style="width:${x.p}%"></i></div></div>`).join('')}</div></details>`:'';
     box.className='';
     box.innerHTML=keys.length?kpis+`<div class="dns">${dona('TODAS',T,true)}${keys.map(k=>dona(k,A[k])).join('')}</div><div class="mut" style="text-align:center;font-size:12px">Votos digitados de los asignados</div>${lis}`:'<span class="mut">Aún no hay votos digitados.</span>';
   }catch(e){box.className='mut';box.textContent='No se pudo cargar el avance: '+e.message}
