@@ -215,7 +215,7 @@ td{text-transform:uppercase}
   <div id="tR" class="hide">
     <div class="card">
       <h2>Registros digitados</h2>
-      <div class="row" style="align-items:flex-end"><div><label class="l">Área</label><select id="dArea"></select></div><div><button id="btnXlsx" style="width:100%">Descargar Excel</button></div><div><button class="sec" id="btnRep" style="width:100%">Votantes repetidos</button></div></div><div id="repBox" style="margin-top:10px"></div>
+      <div class="row" style="align-items:flex-end"><div><label class="l">Área</label><select id="dArea"></select></div><div><button id="btnXlsx" style="width:100%">Descargar Excel</button></div><div><label class="l">Reporte PDF: entrega</label><select id="repFil"><option value="">Todos</option><option value="cien">Entregaron al 100%</option><option value="parc">Entregaron parcial (menos del 100%)</option><option value="no">Aún no entregan</option></select></div><div><button class="sec" id="btnRep" style="width:100%">Votantes repetidos</button></div><div><button id="btnRepPdf" style="width:100%">Reporte PDF (por contrato)</button></div></div><div id="repBox" style="margin-top:10px"></div>
       <div id="rMsg" class="mut" style="margin-top:10px"></div>
     </div>
     <div class="card">
@@ -412,14 +412,15 @@ async function cargarAvance(){
     const [cs,rg]=await Promise.all([fb('proyecta_contratistas'),fb('proyecta_registros')]);
     const CC=norm(cs),RR=Object.values(norm(rg));
     const gr=x=>String(x||'').toUpperCase()==='IVC'?'IVC':'SYC'; /* SYC agrupa todas las áreas menos IVC */
-    const A={};const get=a=>A[a]||(A[a]={asig:0,dig:0,cont:0});
+    const A={};const get=a=>A[a]||(A[a]={asig:0,dig:0,cont:0,ent:0});const cntC={};
     Object.values(CC).forEach(c=>{const a=gr(c.area);const g=get(a);g.cont++;if(tieneRango(c))g.asig+=totSer(c)});
-    RR.forEach(r=>{if(!r||typeof r!=='object')return;const c=CC[r.contrato];get(gr((c&&c.area)||r.area)).dig++});
+    RR.forEach(r=>{if(!r||typeof r!=='object')return;const c=CC[r.contrato];get(gr((c&&c.area)||r.area)).dig++;cntC[r.contrato]=(cntC[r.contrato]||0)+1});
+    Object.values(CC).forEach(c=>{if(c&&c.entregado)get(gr(c.area)).ent+=(c.entN!==''&&c.entN!=null)?+c.entN:(cntC[c.contrato]||0)});
     const orden=['IVC','SYC','PET','EE'];
     const keys=Object.keys(A).sort((x,y)=>{const i=orden.indexOf(x),j=orden.indexOf(y);return (i<0?99:i)-(j<0?99:j)||x.localeCompare(y)}).filter(k=>A[k].asig||A[k].dig);
-    const dona=(nom,g,tot)=>{const p=g.asig?Math.min(100,Math.round(g.dig/g.asig*100)):0,R=42,L=2*Math.PI*R,d=L*p/100;
-      return `<div class="dn${tot?' tot':''}"><svg viewBox="0 0 100 100" role="img" aria-label="${esc(nom)} ${p}%"><circle cx="50" cy="50" r="${R}" fill="none" stroke="#f0e2cc" stroke-width="13"/><circle cx="50" cy="50" r="${R}" fill="none" stroke="${tot?'#F70025':'#F25C00'}" stroke-width="13" stroke-linecap="round" stroke-dasharray="${d} ${L-d}" transform="rotate(-90 50 50)"/><text x="50" y="55" text-anchor="middle" font-size="20" font-weight="700" fill="#2b1a14">${p}%</text></svg><b>${esc(nom)}</b><span>${g.dig} de ${g.asig}</span></div>`};
-    const T=keys.reduce((t,k)=>({asig:t.asig+A[k].asig,dig:t.dig+A[k].dig}),{asig:0,dig:0});
+    const dona=(nom,g,tot)=>{const p=g.asig?Math.min(100,Math.round(g.dig/g.asig*100)):0,R=42,L=2*Math.PI*R,d=L*p/100;const pe=g.asig?Math.min(100,Math.round(g.ent/g.asig*100)):0,R2=30,L2=2*Math.PI*R2,d2=L2*pe/100;
+      return `<div class="dn${tot?' tot':''}"><svg viewBox="0 0 100 100" role="img" aria-label="${esc(nom)} ${p}%"><circle cx="50" cy="50" r="${R}" fill="none" stroke="#f0e2cc" stroke-width="13"/><circle cx="50" cy="50" r="${R}" fill="none" stroke="${tot?'#F70025':'#F25C00'}" stroke-width="13" stroke-linecap="round" stroke-dasharray="${d} ${L-d}" transform="rotate(-90 50 50)"/><circle cx="50" cy="50" r="${R2}" fill="none" stroke="#e3f1e3" stroke-width="6"/><circle cx="50" cy="50" r="${R2}" fill="none" stroke="#2e7d32" stroke-width="6" stroke-linecap="round" stroke-dasharray="${d2} ${L2-d2}" transform="rotate(-90 50 50)"/><text x="50" y="55" text-anchor="middle" font-size="18" font-weight="700" fill="#2b1a14">${p}%</text></svg><b>${esc(nom)}</b><span>${g.dig} de ${g.asig}</span><span style="display:block;color:#2e7d32;font-weight:700">✓ ${pe}% entregados</span><span style="display:block;color:#2e7d32;font-size:12px">${g.ent} de ${g.asig}</span></div>`};
+    const T=keys.reduce((t,k)=>({asig:t.asig+A[k].asig,dig:t.dig+A[k].dig,ent:t.ent+A[k].ent}),{asig:0,dig:0,ent:0});
     const conReg=new Set(RR.filter(r=>r&&typeof r==='object').map(r=>String(r.contrato))).size,totC=Object.keys(CC).length;
     const kp=(v,l)=>`<div class="kp"><b>${v}</b><span>${l}</span></div>`;
     const kpis=`<div class="kps">${kp(T.dig,'Votos digitados')}${kp(Math.max(0,T.asig-T.dig),'Votos faltantes')}${kp(T.asig,'Votos asignados')}${kp(conReg+' de '+totC,'Contratistas con registros')}${kp(Object.values(CC).filter(c=>c&&c.entregado).length,'Contratistas que entregaron')}</div>`;
@@ -428,7 +429,7 @@ async function cargarAvance(){
       .sort((x,y)=>y.p-x.p||y.dig-x.dig||x.nom.localeCompare(y.nom));
     const lis=lista.length?`<details open style="margin-top:10px"><summary style="cursor:pointer;font-weight:700;margin-bottom:6px">Contratistas que han diligenciado votos (${lista.length})</summary><div class="scroll" style="max-height:340px;padding:4px 10px">${lista.map(x=>`<div class="avr${x.ent?' ent':''}"><div class="t"><span><b style="font-size:14px">${esc(x.nom)}</b>${x.area?` <span class="mut">· ${esc(x.area)}</span>`:''}${x.ent?' <span style="color:#2e7d32;font-weight:700;font-size:12px">✓ ENTREGÓ</span>':''}</span><span>${x.dig}${x.asig?' de '+x.asig:''} votos${x.asig?` · <b>${x.p}%</b>`:''}</span></div><div class="tr"><i style="width:${x.p}%"></i></div></div>`).join('')}</div></details>`:'';
     box.className='';
-    box.innerHTML=keys.length?kpis+`<div class="dns">${dona('TODAS',T,true)}${keys.map(k=>dona(k,A[k])).join('')}</div><div class="mut" style="text-align:center;font-size:12px">Votos digitados de los asignados</div>${lis}`:'<span class="mut">Aún no hay votos digitados.</span>';
+    box.innerHTML=keys.length?kpis+`<div class="dns">${dona('TODAS',T,true)}${keys.map(k=>dona(k,A[k])).join('')}</div><div class="mut" style="text-align:center;font-size:12px">Anillo exterior: votos digitados · Anillo verde: votos entregados</div>${lis}`:'<span class="mut">Aún no hay votos digitados.</span>';
   }catch(e){box.className='mut';box.textContent='No se pudo cargar el avance: '+e.message}
 }
 /* ---------- ingreso contratista ---------- */
@@ -658,7 +659,7 @@ async function guardarContratista(){
     const upd={};
     if(editKey&&editKey!==String(n)){upd['proyecta_contratistas/'+editKey]=null}
     const prev=C[editKey||n]||{};
-    const nuevo={contrato:n,nombre:nm,area,desde:prev.desde==null?'':prev.desde,hasta:prev.hasta==null?'':prev.hasta,extra:prev.extra||'',entregado:prev.entregado||'',entN:prev.entN||''};
+    const nuevo={contrato:n,nombre:nm,area,desde:prev.desde==null?'':prev.desde,hasta:prev.hasta==null?'':prev.hasta,extra:prev.extra||'',entregado:prev.entregado||'',entN:prev.entN||'',entSeriales:prev.entSeriales||''};
     const cd=ult4($('aCed').value);
     if(cd)nuevo.clave=await hash4(n,cd);
     else if(prev.clave&&(!editKey||editKey===String(n)))nuevo.clave=prev.clave; /* al cambiar el N° de contrato la clave se reinicia */
@@ -808,26 +809,75 @@ async function moverSerial(old){
   }catch(e){msg('sMsg','Error: '+e.message)}
 }
 $('sFBody').addEventListener('click',e=>{const b=e.target.closest('[data-mv]');if(b&&sel)moverSerial(b.dataset.mv)});
+function compactar(l){l=[...new Set(l.map(Number))].filter(x=>x>0).sort((a,b)=>a-b);const o=[];for(let i=0;i<l.length;){let j=i;while(j+1<l.length&&l[j+1]===l[j]+1)j++;o.push(j>i?l[i]+'-'+l[j]:String(l[i]));i=j+1}return o.join(', ')}
 function ahoraTxt(){const d=new Date(),p=n=>String(n).padStart(2,'0');return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`}
 function pintarEntrega(){
   const c=C[sel]||{};
-  $('entBox').innerHTML=c.entregado?`<div class="msg ok" style="display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap"><span>✓ <b>Entregó los votos</b> el ${esc(c.entregado)}${c.entN!==''&&c.entN!=null?` (${+c.entN} votos digitados en ese momento)`:''}</span><button class="sec" id="btnEnt" style="padding:6px 12px">Quitar entrega</button></div>`:`<button id="btnEnt" style="width:100%">Marcar como entregó votos</button>`;
+  $('entBox').innerHTML=c.entregado?`<div class="msg ok" style="display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap"><span>✓ <b>Entregó los votos</b> el ${esc(c.entregado)}${c.entN!==''&&c.entN!=null?` (${+c.entN} votos digitados en ese momento)`:''}${c.entSeriales?`<br>Seriales entregados: <b>${esc(c.entSeriales)}</b>`:''}</span><button class="sec" id="btnEnt" style="padding:6px 12px">Quitar entrega</button></div>`:`<button id="btnEnt" style="width:100%">Marcar como entregó votos</button>`;
 }
 async function toggleEntrega(){
   if(!sel)return;const c=C[sel];if(!c)return;
   try{
     if(c.entregado){
       if(!(await pedirClave('Quitar la marca de entrega del contrato '+sel)))return msg('sMsg','Operación cancelada.','warn');
-      await fb('proyecta_contratistas/'+sel,'PATCH',{entregado:'',entN:''});
+      await fb('proyecta_contratistas/'+sel,'PATCH',{entregado:'',entN:'',entSeriales:''});
     }else{
       const n=Object.keys(allIdx[sel]||{}).length;
       if(!confirm(`¿Marcar que ${c.nombre} ya entregó los votos? Tiene ${n} digitados en el aplicativo.`))return;
-      await fb('proyecta_contratistas/'+sel,'PATCH',{entregado:ahoraTxt(),entN:n});
+      await fb('proyecta_contratistas/'+sel,'PATCH',{entregado:ahoraTxt(),entN:n,entSeriales:compactar(Object.keys(allIdx[sel]||{}))});
     }
     const k=sel;await cargarAdmin();seleccionar(k);msg('sMsg',c.entregado?'Marca de entrega quitada.':'Marcado: entregó los votos.','ok');
   }catch(e){msg('sMsg','Error: '+e.message)}
 }
 $('entBox').addEventListener('click',e=>{if(e.target.closest('#btnEnt'))toggleEntrega()});
+async function reportePDF(){
+  const area=$('dArea').value,fil=$('repFil').value,filTxt={'':'Todos',cien:'Entregaron al 100%',parc:'Entregaron parcial',no:'Aun no entregan'}[fil];msg('rMsg','');$('rMsg').textContent='Generando reporte…';
+  try{
+    C=await fb('proyecta_contratistas')||{};await cargarRegs();await cargarPdfLib();
+    const {PDFDocument,StandardFonts,rgb}=PDFLib;
+    const filas=Object.keys(C).map(Number).sort((a,b)=>a-b).map(k=>{const c=C[k],sers=Object.keys(allIdx[k]||{}),dig=sers.length;
+      const ent=c.entregado?((c.entN!==''&&c.entN!=null)?+c.entN:dig):0;
+      const asig=totSer(c);return {k,asig,nom:String(c.nombre||'').toUpperCase(),area:String(c.area||'').toUpperCase(),dig,ent,e:!!c.entregado,ser:c.entregado?(c.entSeriales||compactar(sers)):'',tiene:tieneRango(c)||dig>0||!!c.entregado}})
+      .filter(r=>r.tiene&&(!area||r.area===String(area).toUpperCase()))
+      .filter(r=>!fil||(fil==='no'?!r.e:fil==='cien'?(r.e&&r.asig>0&&r.ent>=r.asig):(r.e&&!(r.asig>0&&r.ent>=r.asig))));
+    if(!filas.length){$('rMsg').textContent='';return msg('rMsg','No hay contratistas con ese filtro para el reporte.')}
+    const doc=await PDFDocument.create(),F=await doc.embedFont(StandardFonts.Helvetica),FB=await doc.embedFont(StandardFonts.HelveticaBold);
+    const ok=t=>String(t==null?'':t).replace(/[^\x20-\x7E\u00A0-\u00FF]/g,'?');
+    const W=792,H=612,M=36,RH=17,X={k:M,nom:M+52,area:M+245,dig:M+360,ent:M+420,ser:M+482},SW=W-M-X.ser;
+    const roja=rgb(.97,0,.145),verde=rgb(.18,.49,.2),gris=rgb(.45,.4,.38),bl=rgb(1,1,1);
+    const fit=(t,f,sz,w)=>{t=ok(t);while(t.length>1&&f.widthOfTextAtSize(t,sz)>w)t=t.slice(0,-1);return t};
+    const der=(p,t,x,y,f,sz,c)=>{t=ok(t);p.drawText(t,{x:x-f.widthOfTextAtSize(t,sz),y,size:sz,font:f,color:c||rgb(0,0,0)})};
+    const lineas=(t,w,sz)=>{const o=[];let cur='';ok(t).split(', ').forEach(tok=>{const n=cur?cur+', '+tok:tok;if(cur&&F.widthOfTextAtSize(n+',',sz)>w){o.push(cur+',');cur=tok}else cur=n});if(cur)o.push(cur);return o};
+    const T=filas.reduce((t,r)=>({dig:t.dig+r.dig,ent:t.ent+r.ent,n:t.n+1,ne:t.ne+(r.e?1:0)}),{dig:0,ent:0,n:0,ne:0});
+    const ahora=ahoraTxt(),pags=[];let p,y;
+    const cab=(primera)=>{p=doc.addPage([W,H]);pags.push(p);y=H-M;
+      if(primera){p.drawText('Reporte de votos - Presupuestos Participativos IVC y SYC',{x:M,y:y-14,size:15,font:FB,color:roja});y-=34;
+        p.drawText(ok(`Generado: ${ahora}  |  Area: ${area||'Todas'}  |  Entrega: ${filTxt}  |  Contratistas: ${T.n}`),{x:M,y,size:9,font:F,color:gris});y-=20}
+      p.drawRectangle({x:M,y:y-4,width:W-2*M,height:RH+2,color:roja});const hy=y+1;
+      p.drawText('Contrato',{x:X.k+4,y:hy,size:9,font:FB,color:bl});p.drawText('Nombre',{x:X.nom,y:hy,size:9,font:FB,color:bl});p.drawText('Area',{x:X.area,y:hy,size:9,font:FB,color:bl});
+      der(p,'Digitados',X.dig+50,hy,FB,9,bl);der(p,'Entregados',X.ent+50,hy,FB,9,bl);p.drawText('Seriales entregados (de - a)',{x:X.ser,y:hy,size:9,font:FB,color:bl});y-=RH+4};
+    cab(true);
+    filas.forEach((r,i)=>{
+      const ls=r.e?lineas(r.ser||'-',SW,8.5):[],rh=Math.max(RH,ls.length*11+6);
+      if(y-rh<M+RH*5)cab(false);
+      if(i%2===0)p.drawRectangle({x:M,y:y+RH-4-rh,width:W-2*M,height:rh,color:rgb(.99,.96,.91)});
+      p.drawText(String(r.k),{x:X.k+4,y,size:9,font:F});p.drawText(fit(r.nom,F,9,190),{x:X.nom,y,size:9,font:F});p.drawText(fit(r.area,F,9,115),{x:X.area,y,size:9,font:F});
+      der(p,String(r.dig),X.dig+50,y,F,9);der(p,r.e?String(r.ent):'-',X.ent+50,y,r.e?FB:F,9,r.e?verde:gris);
+      if(r.e)ls.forEach((l,j)=>p.drawText(l,{x:X.ser,y:y-j*11,size:8.5,font:F,color:verde}));else p.drawText('-',{x:X.ser,y,size:9,font:F,color:gris});
+      y-=rh});
+    if(y<M+RH*9)cab(false);
+    y-=6;p.drawRectangle({x:M,y:y-5,width:W-2*M,height:RH+2,color:rgb(.95,.88,.76)});
+    p.drawText(ok(`TOTAL (${T.n} contratistas, ${T.ne} con entrega)`),{x:X.k+4,y,size:9.5,font:FB});der(p,String(T.dig),X.dig+50,y,FB,9.5);der(p,String(T.ent),X.ent+50,y,FB,9.5,verde);y-=RH+14;
+    const grp=g=>filas.filter(r=>g==='IVC'?r.area==='IVC':r.area!=='IVC').reduce((t,r)=>({n:t.n+1,dig:t.dig+r.dig,ent:t.ent+r.ent}),{n:0,dig:0,ent:0});
+    p.drawText('Resumen por grupo',{x:M,y,size:10.5,font:FB,color:roja});y-=18;
+    [['IVC',grp('IVC')],['SYC (todas las demas areas)',grp('SYC')]].forEach(([n,g])=>{p.drawText(ok(`${n}: ${g.n} contratistas`),{x:M+4,y,size:9.5,font:F});p.drawText(`Digitados: ${g.dig}`,{x:X.area+60,y,size:9.5,font:FB});p.drawText(`Entregados: ${g.ent}`,{x:X.ent-30,y,size:9.5,font:FB,color:verde});y-=RH});
+    pags.forEach((q,i)=>q.drawText(`Pagina ${i+1} de ${pags.length}`,{x:W-M-60,y:18,size:8,font:F,color:gris}));
+    const bytes=await doc.save();
+    const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([bytes],{type:'application/pdf'}));a.download=`Reporte-votos${area?'-'+area:''}${fil?'-'+{cien:'entregaron-100',parc:'entrega-parcial',no:'sin-entregar'}[fil]:''}-${ahora.slice(0,10)}.pdf`;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},2000);
+    $('rMsg').textContent='';msg('rMsg',`Reporte generado: ${T.n} contratistas, ${T.dig} votos digitados, ${T.ent} entregados.`,'ok');
+  }catch(e){$('rMsg').textContent='';msg('rMsg','Error: '+e.message)}
+}
+$('btnRepPdf').onclick=reportePDF;
 $('btnAsig').onclick=()=>asignar(false);
 $('btnX').onclick=addExtra;
 $('xList').onclick=e=>{const b=e.target.closest('[data-xq]');if(b)quitarExtra(+b.dataset.xq)};
@@ -958,8 +1008,12 @@ function serialesTarj(k,txt,modo){
   l=l.filter(x=>enRango(c,x));
   if(modo==='pend')l=l.filter(x=>!h[x]);if(modo==='dig')l=l.filter(x=>h[x]);
   return l}
+async function cargarPdfLib(){
+  if(window.PDFLib)return;
+  await new Promise((ok,no)=>{const sc=document.createElement('script');sc.src='https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js';sc.onload=ok;sc.onerror=()=>no(new Error('No cargó la librería de PDF. Revisa tu internet.'));document.head.appendChild(sc)});
+}
 async function tarjetonesPDF(grupos,nombre){
-  if(!window.PDFLib)await new Promise((ok,no)=>{const sc=document.createElement('script');sc.src='https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js';sc.onload=ok;sc.onerror=()=>no(new Error('No cargó la librería de PDF. Revisa tu internet.'));document.head.appendChild(sc)});
+  await cargarPdfLib();
   const {PDFDocument,StandardFonts,rgb}=PDFLib;
   const out=await PDFDocument.create();
   const [tpl]=await out.embedPdf(Uint8Array.from(atob(TJ_PDF),c=>c.charCodeAt(0)),[0]);
