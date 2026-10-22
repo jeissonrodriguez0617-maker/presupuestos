@@ -106,6 +106,9 @@ td{text-transform:uppercase}
       <div><label class="l">Serial (automático)</label><input type="number" id="fSerial" readonly tabindex="-1" style="background:#f3eadc;font-weight:700;cursor:not-allowed" title="El serial se asigna solo, en orden"></div>
       <div><label class="l">1. Localidad</label><input type="text" id="fLoc" value="ENGATIVÁ" readonly></div>
     </div>
+    <label id="anulLbl" style="display:flex;gap:10px;align-items:center;margin:12px 0 4px;padding:10px 12px;border:1.5px dashed #c0392b;border-radius:10px;cursor:pointer;background:#fff5f3"><input type="checkbox" id="fAnul" style="width:20px;height:20px;flex:0 0 auto"><span><b style="color:#c0392b">VOTO ANULADO</b><br><span class="mut" style="font-size:12px">Marca esto si el tarjetón está anulado: no se piden los demás datos.</span></span></label>
+    <div id="anulBox" class="hide"><label class="l">Motivo (opcional)</label><input type="text" id="fMotivo" autocomplete="off" placeholder="Ej.: tachones, tarjetón dañado, en blanco…"></div>
+    <div id="camposVoto">
     <label class="l">2. Nombre completo <span class="req">*</span></label><input type="text" id="fNombre" autocomplete="off">
     <label class="l">3. Tipo de identificación <span class="req">*</span></label><div class="chips" id="fTipo"></div>
     <div class="row">
@@ -127,6 +130,7 @@ td{text-transform:uppercase}
       <div class="scroll" style="max-height:300px"><table><thead><tr><th>Código</th><th>Tema</th><th>Título</th></tr></thead><tbody id="pBody"></tbody></table></div>
       <div class="mut" style="margin-top:4px">Toca una fila para agregar ese código al siguiente campo vacío.</div>
     </details>
+    </div>
     <div id="fMsg"></div>
     <div style="margin-top:12px" class="row">
       <button id="btnGuardar">Guardar y siguiente</button>
@@ -247,6 +251,7 @@ td{text-transform:uppercase}
 const DB='https://operativos-ivc-default-rtdb.firebaseio.com';
 const PIN='5858';
 const CLAVE='1092';
+const CLAVE_DEL='9202'; /* solo para eliminar votos y contratistas */
 const PROPS=[["57067","Transforma Lo Local","Cambio de carpeta asfáltica de la CL 71 entre KR83 Y KR82 (10006978, 10006946), en el barrio La Clarita. Entendiéndose esta como el retiro y reemplazo de la primera capa del pavimento (asfalto)."],["57068","Transforma Lo Local","Bacheo/parcheo de la CL 76 entre KR81 Y KR80A (10006195), en el barrio San José de La Granja. Entendiéndose esta como la intervención puntual y superficial a los daños existentes en el pavimento."],["57069","Transforma Lo Local","Bacheo/parcheo de la CL 66B entre KR122 Y KR121 (10001128), en el barrio Engativá Centro. Entendiéndose esta como la intervención puntual y superficial a los daños existentes en el pavimento."],["57070","Transforma Lo Local","Intervención Parque Urbanización Villa Amalia (AC 72 y la CL 72ª y KR 109 y KR 108) Recuperación y modernización de infraestructuras deterioradas para devolverles su seguridad y funcionalidad."],["57172","Ambiente y animales","Huellitas de atención veterinaria para nuestros animales de protección"],["57284","Ambiente y animales","En Engativá Niños y Niñas, jóvenes y lideres comunales promotores de adopción responsable"],["57323","Ambiente y animales","Foro: Engativá territorio amigo de los animales"],["57324","Ambiente y animales","Comunidad que cuida, red que protege y animales con bienestar en Engativá"],["57325","Ambiente y animales","Engativá esteriliza a los animales más vulnerables de los humedales, canales y ronda del río Bogotá"],["57335","Ambiente y animales","Esterilización y cuidado de animales vulnerables, ferales y en condición de calle en Engativá"],["57344","Participación ciudadana","Capacidades Digitales para la Participación en Engativá"],["57346","Participación ciudadana","Escuela de Gobierno: Transformar para la sana convivencia y una participación activa"],["57353","Derechos de las mujeres","Tejiendo generaciones: red comunitaria para el cuidado y la prevención de violencias en Engativá"],["57357","Derechos de las mujeres","Engativá previene y transforma: Escuela Comunitaria para la prevención de violencias familiares y sexuales"],["57493","Ambiente y animales","Educando a Engativá en la protección de sus fuentes hídricas y cuerpos de agua"],["57494","Ambiente y animales","Huertas Urbanas: Engativá con Soberanía Alimentaria"],["57497","Ambiente y animales","Engativá, Guardiana de la Biodiversidad"],["57499","Ambiente y animales","Engativá Resiliente: Comunidad Preparada frente al Cambio Climático"],["57501","Ambiente y animales","Engativá EcoComunidad: Cuidamos Nuestro Territorio"],["57502","Ambiente y animales","Engativá Late Verde: Arte, Deporte y Cultura por el Ambiente"],["57504","Ambiente y animales","Memoria Viva de Engativá: Cartografía, Arte y Patrimonio Ambiental de los Humedales"],["57505","Ambiente y animales","Engativá Aprende y Cuida: Educación Ambiental para Todos y Todas"],["57506","Ambiente y animales","Engativá Recicla y Renace: Eco Ambiental 48"],["57508","Ambiente y animales","Conjuntos que Reciclan: Propiedad Horizontal Sostenible"],["57509","Ambiente y animales","Recicla con Equidad: Reciclaje Inclusivo y con Enfoque Diferencial"],["57511","Ambiente y animales","Colegios que Transforman: Educación Ambiental y Reciclaje Escolar"],["57513","Ambiente y animales","Comercio Consciente: Separación en la Fuente en Plazas y Establecimientos"],["57515","Ambiente y animales","De la Cocina a la Tierra: Aprovechamiento de Orgánicos y Compostaje"],["57518","Ambiente y animales","Recicladores Protagonistas: Reconocimiento y Fortalecimiento del Oficio"],["57520","Ambiente y animales","Puntos Críticos Cero: Infraestructura e Innovación Digital para el Reciclaje"],["57524","Reactivación económica","Fortalecimiento y Formalización de Unidades Productivas para el Desarrollo Económico Local"],["57528","Reactivación económica","Fortalecimiento de Capacidades Productivas y Empresariales de la Economía Informal."],["57531","Reactivación económica","Fortalecimiento de Habilidades blandas y Técnicas para la Empleabilidad y el Acceso al Mercado Laboral en la localidad de Engativá"],["57533","Reactivación económica","Fortalecimiento de la Inclusión Laboral y las Competencias para el Empleo en Engativá"],["57535","Reactivación económica","Fortalecimiento del Turismo Comunitario Sostenible, Promoción del Patrimonio Cultural y Natural de Engativá"],["57536","Reactivación económica","Innovación y Fortalecimiento de la Oferta Turística, Cultural y Patrimonial de Engativá"],["57677","Cultura, recreación y deporte","Apoyar económicamente a organizaciones del Banco para desarrollar proyectos deportivos, recreativos y comunitarios que fortalezcan la participación, el liderazgo y el bienestar colectivo"],["57678","Cultura, recreación y deporte","Fortalecer colectivos y organizaciones recreo-deportivas mediante apoyos económicos para desarrollar iniciativas barriales de actividad física, recreación, deporte, inclusión y hábitos saludables"],["57681","Cultura, recreación y deporte","Otorgar apoyos económicos a organizaciones recreo-deportivas inscritas en el Banco para fortalecer escuelas deportivas comunitarias dirigidas a niños, niñas y adolescentes."],["57746","Cultura, recreación y deporte","Implementar apoyos económicos para organizaciones inscritas en el Banco, orientados al desarrollo de iniciativas deportivas y recreativas con impacto comunitario en los barrios."],["57750","Cultura, recreación y deporte","Dotando Sueños, Fortaleciendo la Cultura de Engativá."],["57751","Cultura, recreación y deporte","Engativá Crea y Crece con elementos para el Arte y la cultura"],["57755","Cultura, recreación y deporte","Semillas creativas: dotación pedagógica para el fortalecimiento de organizaciones artísticas, culturales y patrimoniales"],["57777","Cultura, recreación y deporte","Engativá Creativa, Diversa e histórica"],["57785","Cultura, recreación y deporte","FinanciArte Engativá: Del Recurso a la Escena"],["57805","Salud mental","Engativá siente y se conecta en salud mental"],["57810","Salud mental","Tejiendo Salud: Redes de Cuidado Comunitario y Bienestar"],["57982","Cultura, recreación y deporte","Festival Engativá Activa: Deporte, Recreación y Comunidad que Nos Une"],["57987","Cultura, recreación y deporte","Generación en Juego: Olimpiadas que Unen a Engativá"],["57989","Cultura, recreación y deporte","Realizar jornadas recreativas mensuales que permitan beneficiar la movilidad de la persona mayor"],["57993","Cultura, recreación y deporte","Personas mayores en movimiento: caminatas al aire libre y salidas recreodeportivas con participación ciudadana para transformar la localidad y fortalecer el bienestar."],["57999","Cultura, recreación y deporte","Fortaleciendo tu experiencia: Arte al territorio"],["58001","Cultura, recreación y deporte","Descubriendo el Arte en Engativá"],["58015","Cultura, recreación y deporte","Cultura Viva: Formación y Comunidad"],["58016","Cultura, recreación y deporte","Cultura, Innovación y Territorio en Engativá, sumérgete en la aventura"],["58018","Cultura, recreación y deporte","INGENIARTE ENGATIVÁ"]];
 const PMAP={};PROPS.forEach(x=>PMAP[x[0]]=x);
 const LOCS=['Usaquén','Chapinero','Santa Fe','San Cristóbal','Usme','Tunjuelito','Bosa','Kennedy','Fontibón','ENGATIVÁ','Suba','Barrios Unidos','Teusaquillo','Los Mártires','Antonio Nariño','Puente Aranda','La Candelaria','Rafael Uribe Uribe','Ciudad Bolívar','Sumapaz'];
@@ -304,7 +309,7 @@ function pedirClave(motivo){
     document.body.appendChild(ov);
     const inp=ov.querySelector('#claveIn');inp.focus();
     const fin=v=>{document.removeEventListener('keydown',kd,true);ov.remove();res(v)};
-    const ok=()=>{if(inp.value===CLAVE)fin(true);else{msg('claveMsg','Clave incorrecta.');inp.value='';inp.focus()}};
+    const ok=()=>{if(inp.value===(/^Eliminar/i.test(motivo)?CLAVE_DEL:CLAVE))fin(true);else{msg('claveMsg','Clave incorrecta.');inp.value='';inp.focus()}};
     const kd=e=>{if(e.key==='Escape')fin(false)};
     document.addEventListener('keydown',kd,true);
     ov.querySelector('#claveOk').onclick=ok;
@@ -517,7 +522,7 @@ function siguienteLibre(desde){
 /* ---------- formulario ---------- */
 function limpiar(keepLoc){
   const loc=$('fLoc').value;
-  editingSerial=null;$('modoEdit').textContent='';
+  editingSerial=null;$('modoEdit').textContent='';$('fAnul').checked=false;$('fMotivo').value='';aplicarAnul();
   ['fNombre','fNumId','fFecha','fEdad'].forEach(i=>$(i).value='');
   document.querySelectorAll('.cod').forEach(i=>i.value='');refreshHints();
   ['tipo','sexo','org','disc','dtipo','estrato'].forEach(n=>setVal(n,''));
@@ -532,6 +537,7 @@ async function guardar(){
   if(!serial)return msg('fMsg',tieneRango(me)?'¡Ya digitaste todos los votos de tu rango!':'Aún no tienes seriales asignados. Comunícate con el administrador.');
   $('fSerial').value=serial;
   if(tieneRango(me)&&!enRango(me,serial))return msg('fMsg',`El serial ${serial} no está en tu rango (${rangosTxt(me)}).`);
+  if($('fAnul').checked)return guardarAnulado(serial);
   const cods=[...document.querySelectorAll('.cod')].map(i=>i.value.trim());
   document.querySelectorAll('.falta').forEach(x=>x.classList.remove('falta'));
   const falt=[];
@@ -594,10 +600,35 @@ async function guardar(){
   }catch(e){msg('fMsg','Error al guardar: '+e.message)}
   btn.disabled=false;
 }
+function aplicarAnul(){const on=$('fAnul').checked;$('camposVoto').classList.toggle('hide',on);$('anulBox').classList.toggle('hide',!on);$('anulLbl').style.background=on?'#fde0db':'#fff5f3';$('btnGuardar').textContent=on?'Guardar voto anulado y siguiente':'Guardar y siguiente'}
+$('fAnul').addEventListener('change',aplicarAnul);
+async function guardarAnulado(serial){
+  const btn=$('btnGuardar');btn.disabled=true;
+  try{
+    const ex=await fb('proyecta_registros/'+serial);
+    if(ex&&editingSerial!==serial){
+      if(String(ex.contrato)!==String(me.contrato)){msg('fMsg',`El serial ${serial} ya fue digitado por otro contratista.`);btn.disabled=false;return}
+      if(!confirm(`El serial ${serial} ya está digitado. ¿Sobrescribir?`)){btn.disabled=false;return}
+    }
+    const rec={n:(ex&&ex.n)?ex.n:Math.max(0,...Object.values(mySer).map(r=>r.n||0))+1,
+      serial,contrato:me.contrato,contratista:me.nombre,area:me.area||'',localidad:'ENGATIVÁ',nombre:'VOTO ANULADO',anulado:true,
+      motivo:$('fMotivo').value.trim().toUpperCase(),codigos:['','','','',''],
+      ts:(editingSerial===serial&&ex&&ex.ts)?ex.ts:new Date().toISOString(),tsMod:new Date().toISOString()};
+    const upd={};upd['proyecta_registros/'+serial]=rec;upd['proyecta_idx/'+me.contrato+'/'+serial]=rec;
+    const old=ex&&vid(ex.numId);if(old){upd['proyecta_votantes/'+old]=null;if(VOT[old]&&String(VOT[old].serial)===String(serial))delete VOT[old]}
+    await fb('','PATCH',upd);
+    mySer[serial]=rec;pintarMis();progreso();
+    const sig=siguienteLibre();
+    if(editingSerial==null){if(rangoCompleto())setTimeout(felicitar,200);else if(cuentaHechos()===100)setTimeout(()=>felicitar('cien'),200)}
+    limpiar(true);$('fSerial').value=sig;
+    msg('fMsg',`Serial ${serial} guardado como VOTO ANULADO.`+(sig===''&&tieneRango(me)?' ¡Terminaste todo tu rango!':''),'ok');
+  }catch(e){msg('fMsg','Error al guardar: '+e.message)}
+  btn.disabled=false;
+}
 async function editar(s){
   try{
     const r=mySer[s];if(!r)return;
-    editingSerial=+s;$('modoEdit').textContent='· editando serial '+s;
+    editingSerial=+s;$('modoEdit').textContent='· editando serial '+s;$('fAnul').checked=!!r.anulado;$('fMotivo').value=r.motivo||'';aplicarAnul();
     $('fSerial').value=r.serial==null?s:r.serial;$('fNombre').value=r.nombre||'';
     setVal('tipo',r.tipoId||'');$('fNumId').value=r.numId||'';$('fFecha').value=r.fechaExp||'';$('fEdad').value=r.edad||'';
     setVal('sexo',r.sexo||'');setVal('org',r.org||'');setVal('disc',r.disc||'');
@@ -876,7 +907,8 @@ async function reportePDF(){
     y-=6;p.drawRectangle({x:M,y:y-5,width:W-2*M,height:RH+2,color:rgb(.95,.88,.76)});
     p.drawText(ok(`TOTAL (${T.n} contratistas, ${T.ne} con entrega)`),{x:X.k+4,y,size:9.5,font:FB});der(p,String(T.dig),X.dig+50,y,FB,9.5);der(p,String(T.ent),X.ent+50,y,FB,9.5,verde);y-=RH+14;
     const grp=g=>filas.filter(r=>g==='IVC'?r.area==='IVC':r.area!=='IVC').reduce((t,r)=>({n:t.n+1,dig:t.dig+r.dig,ent:t.ent+r.ent}),{n:0,dig:0,ent:0});
-    p.drawText('Resumen por grupo',{x:M,y,size:10.5,font:FB,color:roja});y-=18;
+    const nAn=filas.reduce((t,r)=>t+Object.keys(allIdx[r.k]||{}).filter(x=>allReg[x]&&allReg[x].anulado).length,0);
+    p.drawText('Resumen por grupo',{x:M,y,size:10.5,font:FB,color:roja});p.drawText(ok(`Votos anulados (incluidos en digitados): ${nAn}`),{x:X.area+60,y,size:9.5,font:F,color:gris});y-=18;
     [['IVC',grp('IVC')],['SYC (todas las demas areas)',grp('SYC')]].forEach(([n,g])=>{p.drawText(ok(`${n}: ${g.n} contratistas`),{x:M+4,y,size:9.5,font:F});p.drawText(`Digitados: ${g.dig}`,{x:X.area+60,y,size:9.5,font:FB});p.drawText(`Entregados: ${g.ent}`,{x:X.ent-30,y,size:9.5,font:FB,color:verde});y-=RH});
     pags.forEach((q,i)=>q.drawText(`Pagina ${i+1} de ${pags.length}`,{x:W-M-60,y:18,size:8,font:F,color:gris}));
     const bytes=await doc.save();
