@@ -174,6 +174,13 @@ td{text-transform:uppercase}
           <div class="row" style="align-items:flex-end;margin-top:6px"><div><label class="l">Desde</label><input type="number" id="xDes" inputmode="numeric"></div><div><label class="l">Hasta</label><input type="number" id="xHas" inputmode="numeric"></div><div><button id="btnX" style="width:100%">Agregar rango</button></div></div>
           <div id="xMsg"></div>
         </div>
+        <div style="margin-top:14px;border-top:1px solid var(--bd);padding-top:12px">
+          <h2 style="margin:0 0 4px">Mover votos en bloque a otros seriales</h2>
+          <div class="mut">Pasa los votos ya digitados de un grupo de seriales a otro, manteniendo el orden: el primero va al "nuevo serial desde", el segundo al siguiente, y así. Útil cuando se digitó con seriales equivocados.</div>
+          <div class="row" style="align-items:flex-end;margin-top:6px"><div><label class="l">Seriales actuales: desde</label><input type="number" id="mbDes" inputmode="numeric"></div><div><label class="l">hasta</label><input type="number" id="mbHas" inputmode="numeric"></div><div><label class="l">Nuevo serial desde</label><input type="number" id="mbNew" inputmode="numeric"></div></div>
+          <div style="margin-top:8px"><button id="btnMB" style="width:100%">Mover votos en bloque</button></div>
+          <div id="mbMsg"></div>
+        </div>
         <div style="margin-top:16px;border-top:1px solid var(--bd);padding-top:14px">
           <h2 style="margin:0 0 6px">Tarjetones con serial</h2>
           <div class="mut">Estos son todos los tarjetones asignados a este contratista. Toca los que necesitas (se marcan en rojo) y luego "Descargar". <b>✓</b> = ya digitado.</div>
@@ -716,7 +723,7 @@ function seleccionar(k){
   $('sDes').value=tieneRango(c)?c.desde:'';$('sHas').value=tieneRango(c)?c.hasta:'';
   const u=ultimoAsignado();
   $('sHint').textContent=u?`Último serial asignado: ${u} · siguiente libre: ${u+1}`:'Aún no hay seriales asignados.';
-  pintarFormsSel(k);pintarTj();pintarExtras();pintarEntrega();
+  pintarFormsSel(k);pintarTj();pintarExtras();pintarEntrega();msg('mbMsg','');
   $('sDes').focus();
 }
 function solapa(d,h,except){
@@ -878,6 +885,31 @@ async function reportePDF(){
   }catch(e){$('rMsg').textContent='';msg('rMsg','Error: '+e.message)}
 }
 $('btnRepPdf').onclick=reportePDF;
+async function moverBloque(){
+  if(!sel)return;const c=C[sel];if(!c)return;
+  const d=+$('mbDes').value,h=+$('mbHas').value,n=+$('mbNew').value;
+  if(!(d>=1)||!(h>=d)||!(n>=1))return msg('mbMsg','Completa "actuales desde", "hasta" y "nuevo serial desde".');
+  try{
+    await cargarRegs();
+    const org=Object.entries(allReg).filter(([k,r])=>String(r.contrato)===String(sel)&&+(r.serial==null?k:r.serial)>=d&&+(r.serial==null?k:r.serial)<=h).map(([k,r])=>[+(r.serial==null?k:r.serial),r]).sort((a,b)=>a[0]-b[0]);
+    if(!org.length)return msg('mbMsg','Este contratista no tiene votos digitados entre '+d+' y '+h+'.');
+    const oset=new Set(org.map(x=>x[0]));
+    for(const [sv] of org){const nw=n+(sv-d);
+      if(!enRango(c,nw))return msg('mbMsg',`El serial ${nw} (donde iría el ${sv}) no está en los rangos de este contratista (${rangosTxt(c)}). No se movió nada.`);
+      const ex=allReg[nw];if(ex&&!oset.has(nw))return msg('mbMsg',`El serial ${nw} ya tiene un voto (de ${ex.nombre||'otro'}). No se movió nada.`)}
+    const ult=n+(org[org.length-1][0]-d);
+    if(!confirm(`Se moverán ${org.length} votos: del ${org[0][0]} – ${org[org.length-1][0]} a ${n} – ${ult}, en el mismo orden. ¿Continuar?`))return;
+    if(!(await pedirClave('Mover '+org.length+' votos del contrato '+sel+' a partir del serial '+n)))return msg('mbMsg','Operación cancelada.','warn');
+    for(let i=0;i<org.length;i+=40){
+      const lote=org.slice(i,i+40),upd={};
+      lote.forEach(([sv])=>{upd['proyecta_registros/'+sv]=null;upd['proyecta_idx/'+sel+'/'+sv]=null});
+      lote.forEach(([sv,r])=>{const nw=n+(sv-d),x=Object.assign({},r,{serial:nw});upd['proyecta_registros/'+nw]=x;upd['proyecta_idx/'+sel+'/'+nw]=x;const k=vid(r.numId);if(k)upd['proyecta_votantes/'+k]={serial:nw,contrato:String(sel)}});
+      await fb('','PATCH',upd)}
+    VOT_ts=0;const k=sel;await cargarAdmin();seleccionar(k);
+    msg('mbMsg',`Listo: ${org.length} votos movidos del ${org[0][0]} – ${org[org.length-1][0]} al ${n} – ${ult}.`,'ok');
+  }catch(e){msg('mbMsg','Error: '+e.message)}
+}
+$('btnMB').onclick=moverBloque;
 $('btnAsig').onclick=()=>asignar(false);
 $('btnX').onclick=addExtra;
 $('xList').onclick=e=>{const b=e.target.closest('[data-xq]');if(b)quitarExtra(+b.dataset.xq)};
